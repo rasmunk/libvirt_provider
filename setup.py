@@ -38,7 +38,7 @@ setup(
         "dev": read_req("requirements-dev.txt"),
     },
     entry_points={
-        "corc.plugins": ["libvirt_provider=libvirt.instance"]
+        "corc.plugins": ["libvirt_provider=libvirt_provider.instance"]
     },
     classifiers=[
         "Intended Audience :: Developers",
