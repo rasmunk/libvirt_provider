@@ -1,4 +1,4 @@
-===================
-corc_libvirt_plugin
-===================
+================
+libvirt_provider
+================
 A libvirt instance provider plugin for core 
