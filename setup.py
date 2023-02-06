@@ -5,6 +5,7 @@ from setuptools import setup, find_packages
 
 cur_dir = os.path.abspath(os.path.dirname(__file__))
 
+
 def read(path):
     with open(path, "r") as _file:
         return _file.read()
@@ -37,9 +38,7 @@ setup(
         "test": read_req("tests/requirements.txt"),
         "dev": read_req("requirements-dev.txt"),
     },
-    entry_points={
-        "corc.plugins": ["libvirt_provider=libvirt_provider.instance"]
-    },
+    entry_points={"corc.plugins": ["libvirt_provider=libvirt_provider.instance"]},
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
