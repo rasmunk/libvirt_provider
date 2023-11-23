@@ -30,7 +30,7 @@ setup(
     author="Rasmus Munk",
     author_email="munk1@live.dk",
     packages=find_packages(),
-    url="https://github.com/rasmunk/corc_libvirt_plugin",
+    url="https://github.com/rasmunk/libvirt_provider",
     license="MIT",
     keywords=["Orchstration", "Virtual Machine"],
     install_requires=read_req("requirements.txt"),
