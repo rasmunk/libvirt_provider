@@ -21,6 +21,7 @@ def get_instance_by_name(client, name):
                 return instance
     return None
 
+
 def get_instance(client, instance_id, *args, **kwargs):
     try:
         instances = client.list_nodes(*args, **kwargs)
@@ -33,6 +34,7 @@ def get_instance(client, instance_id, *args, **kwargs):
             if instance.id == instance_id:
                 return instance
     return None
+
 
 def client_get_instance(provider, provider_kwargs, format_return=False, instance=None):
     client = new_apache_client(provider, provider_kwargs)
@@ -71,21 +73,14 @@ def list_instances(client):
     return client.list_nodes()
 
 
-default_location_config = {"name": str, "country": str, "driver": dict}
-
-valid_location_config = {"name": "", "country": "", "driver": {}}
-
-default_cluster_config = {"name": "cluster", "location": default_location_config}
-
-valid_cluster_config = {"name": str, "location": dict}
-
-
 def create(client, instance_options):
     instance_args = []
     instance_kwargs = {}
 
     if "name" not in instance_options:
-        raise RuntimeError("Failed to find the required 'name' key in: {}".format(instance_options))
+        raise RuntimeError(
+            "Failed to find the required 'name' key in: {}".format(instance_options)
+        )
     instance_args.append(instance_options["name"])
 
     selected_size = None
@@ -97,8 +92,7 @@ def create(client, instance_options):
     if not selected_size:
         raise RuntimeError(
             "Failed to find an appropriate size: {} in: {}".format(
-                selected_size,
-                available_sizes
+                selected_size, available_sizes
             )
         )
     instance_args.append(selected_size)
@@ -116,7 +110,7 @@ def create(client, instance_options):
     except NotImplementedError:
         print("The underlying driver does not support get_image, default to None")
     # The API requires that the image positional argument is given, even if it is
-    # not used        
+    # not used
     instance_args.append(image)
 
     auth = None
@@ -133,6 +127,7 @@ def create(client, instance_options):
         instance_kwargs["auth"] = auth
 
     return client.create_node(*instance_args, **instance_kwargs)
+
 
 def destroy(client, instance_id):
     instance = get_instance(client, instance_id)

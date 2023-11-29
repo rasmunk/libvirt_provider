@@ -1,10 +1,7 @@
 from libvirt_provider.defaults import default_config
 
 
-def load_driver_options(
-    *args,
-    **kwargs
-):
+def load_driver_options(*args, **kwargs):
     driver_args = []
     driver_kwargs = {}
     for arg in args:
