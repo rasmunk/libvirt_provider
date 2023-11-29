@@ -55,10 +55,37 @@ class TestDummy(unittest.TestCase):
         self.assertEqual(instances[0].id, instance1.id)
         self.assertEqual(instances[1].id, instance2.id)
         self.assertEqual(instances[2].id, instance3.id)
-        
+
         self.assertTrue(destroy(self.client, instance1.id))
         self.assertTrue(destroy(self.client, instance2.id))
         self.assertTrue(destroy(self.client, instance3.id))
+
+    def test_destroy_dummy_nodes(self):
+        # These options are ignored by the DummyDriver
+        # But they must be given to the create method
+        instance_options = {
+            "name": "",
+            "image": "",
+            "size": "Small",
+        }
+        instance1 = create(self.client, instance_options)
+        self.assertIsNotNone(instance1)
+        self.assertIsInstance(instance1, Node)
+        self.assertEqual(instance1.name, "dummy-1")
+        self.assertEqual(len(list_instances(self.client)), 1)
+
+        self.assertTrue(destroy(self.client, instance1.id))
+        self.assertEqual(len(list_instances(self.client)), 0)
+
+        instance2 = create(self.client, instance_options)
+        self.assertIsNotNone(instance2)
+        self.assertIsInstance(instance2, Node)
+        self.assertEqual(instance2.name, "dummy-1")
+        self.assertEqual(len(list_instances(self.client)), 1)
+
+        self.assertTrue(destroy(self.client, instance2.id))
+        self.assertEqual(len(list_instances(self.client)), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
