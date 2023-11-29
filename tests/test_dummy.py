@@ -7,21 +7,18 @@ from libvirt_provider.helpers import new_apache_client
 
 class TestDummy(unittest.TestCase):
     def setUp(self):
-        pass
+        # The DummyDriver creates 2 nodes if creds is set to 0
+        # If creds is set to -1, no nodes are created
+        creds = -1
+        self.client = new_apache_client(DUMMY, creds)
 
     def tearDown(self):
-        creds = 0
-        client = new_apache_client(DUMMY, creds)
         # Destroy all remaining instances
-        instances = list_instances(client)
+        instances = list_instances(self.client)
         for instance in instances:
-            destroy(client, instance.id)
+            destroy(self.client, instance.id)
 
     def test_create_dummy_node(self):
-        creds = 0
-        client = new_apache_client(DUMMY, creds)
-        images = client.list_images()
-        sizes = client.list_sizes()
         # These options are ignored by the DummyDriver
         # But they must be given to the create method
         instance_options = {
@@ -29,40 +26,39 @@ class TestDummy(unittest.TestCase):
             "image": "Ubuntu 9.10",
             "size": "Small",
         }
-        instance = create(client, instance_options)
+        instance = create(self.client, instance_options)
         self.assertIsNotNone(instance)
         self.assertIsInstance(instance, Node)
-        self.assertTrue(destroy(client, instance.id))
+        self.assertTrue(destroy(self.client, instance.id))
 
     def test_list_dummy_nodes(self):
-        creds = 0
-        client = new_apache_client(DUMMY, creds)
         # Validate that there are no other instances
-        self.assertEqual(len(list_instances(client)), 0)
+        instances = list_instances(self.client)
+        self.assertEqual(len(instances), 0)
 
         # These options are ignored by the DummyDriver
         # But they must be given to the create method
         instance_options = {
             "name": "",
             "image": "",
-            "size": "",
+            "size": "Small",
         }
-        instance1 = create(client, instance_options)
-        instance2 = create(client, instance_options)
-        instance3 = create(client, instance_options)
 
-        instances = list_instances(client)
-        self.assertIsNotNone(instances)
-        self.assertLen(instances, 3)
+        instance1 = create(self.client, instance_options)
+        instance2 = create(self.client, instance_options)
+        instance3 = create(self.client, instance_options)
 
-        self.assertIsEqual(instances[0].id, instance1.id)
-        self.assertIsEqual(instances[1].id, instance2.id)
-        self.assertIsEqual(instances[2].id, instance3.id)
-
+        instances = list_instances(self.client)
         self.assertIsNotNone(instances)
         self.assertIsInstance(instances, list)
-        self.assertTrue(destroy(client, instance.id))
 
+        self.assertEqual(instances[0].id, instance1.id)
+        self.assertEqual(instances[1].id, instance2.id)
+        self.assertEqual(instances[2].id, instance3.id)
+        
+        self.assertTrue(destroy(self.client, instance1.id))
+        self.assertTrue(destroy(self.client, instance2.id))
+        self.assertTrue(destroy(self.client, instance3.id))
 
 if __name__ == "__main__":
     unittest.main()
