@@ -1,8 +1,8 @@
 import unittest
 from libcloud.compute.base import Node
 from libvirt_provider.instance import create, destroy, list_instances
-from libvirt_provider.defaults import default_driver_config, DUMMY
-from libvirt_provider.helpers import new_apache_client
+from libvirt_provider.defaults import DUMMY
+from libvirt_provider.client import new_client
 
 
 class TestDummy(unittest.TestCase):
@@ -10,7 +10,7 @@ class TestDummy(unittest.TestCase):
         # The DummyDriver creates 2 nodes if creds is set to 0
         # If creds is set to -1, no nodes are created
         creds = -1
-        self.client = new_apache_client(DUMMY, creds)
+        self.client = new_client(DUMMY, creds)
 
     def tearDown(self):
         # Destroy all remaining instances
