@@ -5,26 +5,37 @@ from libvirt_provider.utils.io import acquire_lock, release_lock, write, load
 
 class Pool:
     def __init__(self, name):
+        # The name of the pool is equal to the
+        # database name
         self.name = name
-        self._nodes = []
+        self._lock_path = "{}.lock".format(self.name)
 
-    async def nodes(self):
-        return self._nodes
+    async def items(self):
+        with shelve.open(self.name) as db:
+            return [item for item in db.values()]
 
-    async def add_node(self, node):
-        aquired_lock = aquired_lock(self.name)
-        if not aquired_lock:
+    async def add(self, item):
+        locked = acquire_lock(self._lock_path)
+        if not locked:
             return False
 
-        with shelver.open(self.name) as db:
-            db[node.id] = node
-
-        release_lock(aquired_lock)
-        return True
-
-    async def remove_node(self, node_id):
-        aquired_lock = acquire_lock(self.name)
         with shelve.open(self.name) as db:
-            del db[node_id]
-        release_lock(aquired_lock)
+            db[item.id] = item
+
+        release_lock(locked)
         return True
+
+    async def remove(self, item_id):
+        locked = acquire_lock(self._lock_path)
+        if not locked:
+            return False
+
+        with shelve.open(self.name) as db:
+            db.pop(item_id)
+
+        release_lock(locked)
+        return True
+
+    async def get(self, item_id):
+        with shelve.open(self.name) as db:
+            return db.get(item_id)

@@ -1,4 +1,5 @@
 import libvirt
+import uuid
 
 
 class Node:
@@ -19,10 +20,10 @@ class DummyDriver:
         pass
 
     def create(self, name=None, image=None, size=None):
-        return Node(1, name, image, size)
+        return Node(str(uuid.uuid4()), name, image, size)
 
     def get(self, node_id):
-        return Node(1, "dummy-1", "dummy-image", "Small")
+        return Node(str(uuid.uuid4()), "dummy-1", "dummy-image", "Small")
 
     def start(self, node):
         return True
