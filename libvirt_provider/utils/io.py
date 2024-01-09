@@ -35,13 +35,16 @@ def release_lock(lock, close=True):
             print("Failed to close file during lock release: {} - {}".format(lock, err))
 
 
-def write(path, content, mode="w", mkdirs=False):
+def write(path, content, mode="w", mkdirs=False, opener=None):
+    if not opener:
+        opener = open
+
     dir_path = os.path.dirname(path)
     if not os.path.exists(dir_path) and mkdirs:
         if not makedirs(dir_path):
             return False
     try:
-        with open(path, mode) as fh:
+        with opener(path, mode) as fh:
             fh.write(content)
         return True
     except Exception as err:
@@ -49,9 +52,12 @@ def write(path, content, mode="w", mkdirs=False):
     return False
 
 
-def load(path, mode="r", readlines=False):
+def load(path, mode="r", readlines=False, opener=None):
+    if not opener:
+        opener = open
+
     try:
-        with open(path, mode) as fh:
+        with opener(path, mode) as fh:
             if readlines:
                 return fh.readlines()
             return fh.read()
@@ -80,18 +86,21 @@ def removedirs(path, recursive=False):
     return False
 
 
-def remove_content_from_file(path, content):
+def remove_content_from_file(path, content, opener=None):
     if not os.path.exists(path):
         return False
 
     if not content:
         return False
 
+    if not opener:
+        opener = open
+
     lines = []
-    with open(path, "r") as rh:
+    with opener(path, "r") as rh:
         lines = rh.readlines()
 
-    with open(path, "w") as wh:
+    with opener(path, "w") as wh:
         for current_line in lines:
             if content not in current_line:
                 wh.write(current_line)
@@ -119,9 +128,12 @@ def parse_yaml(data):
     return False
 
 
-def dump_yaml(path, data):
+def dump_yaml(path, data, opener=None):
+    if not opener:
+        opener = open
+
     try:
-        with open(path, "w") as fh:
+        with opener(path, "w") as fh:
             yaml.dump(data, fh)
         return True
     except IOError as err:
@@ -129,9 +141,11 @@ def dump_yaml(path, data):
     return False
 
 
-def load_yaml(path):
+def load_yaml(path, opener=None):
+    if not opener:
+        opener = open
     try:
-        with open(path, "r") as fh:
+        with opener(path, "r") as fh:
             return yaml.safe_load(fh)
     except IOError as err:
         print("Failed to load yaml: {} - {}".format(path, err))

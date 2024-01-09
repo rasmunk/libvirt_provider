@@ -1,7 +1,8 @@
 import unittest
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.client import new_client
-from libvirt_provider.instance import create, destroy, list_instances
+from libvirt_provider.instance import create, remove
+from libvirt_provider.models import Node
 
 
 class TestLibvirt(unittest.IsolatedAsyncioTestCase):
@@ -12,9 +13,10 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self):
         # Destroy all remaining instances
-        instances = await list_instances(self.client)
-        for instance in instances:
-            await destroy(self.client, instance.id)
+        # instances = await list_instances(self.client)
+        # for instance in instances:
+        #     await remove(self.client, instance.id)
+        pass
 
     async def test_create_node(self):
         instance_options = {
@@ -23,7 +25,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         instance = await create(self.client, instance_options)
         self.assertIsNotNone(instance)
         self.assertIsInstance(instance, Node)
-        self.assertTrue(await destroy(self.client, instance.id))
+        self.assertTrue(await remove(self.client, instance.id))
 
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
 import unittest
-import asyncio
-from libvirt_provider.instance import create, destroy, list_instances
+from libvirt_provider.instance import create, remove
 from libvirt_provider.defaults import DUMMY
 from libvirt_provider.client import new_client
 from libvirt_provider.models import Node
+from libvirt_provider.pool import Pool
 
 
 class TestDummy(unittest.IsolatedAsyncioTestCase):
@@ -13,11 +13,9 @@ class TestDummy(unittest.IsolatedAsyncioTestCase):
         creds = -1
         self.client = new_client(DUMMY, creds)
 
-    def tearDown(self):
-        # Destroy all remaining instances
-        instances = await list_instances(self.client)
-        for instance in instances:
-            await destroy(self.client, instance.id)
+    async def tearDown(self):
+        # Destroy all instances
+        pass
 
     async def test_create_dummy_node(self):
         # These options are ignored by the DummyDriver
@@ -30,36 +28,97 @@ class TestDummy(unittest.IsolatedAsyncioTestCase):
         instance = await create(self.client, instance_options)
         self.assertIsNotNone(instance)
         self.assertIsInstance(instance, Node)
-        self.assertTrue(await destroy(self.client, instance.id))
+        self.assertTrue(await remove(self.client, instance.id))
 
-    def test_list_dummy_nodes(self):
-        # Validate that there are no other instances
-        instances = list_instances(self.client)
-        self.assertEqual(len(instances), 0)
-
+    async def test_dummy_nodes(self):
         # These options are ignored by the DummyDriver
         # But they must be given to the create method
-        instance_options = {
-            "name": "",
-            "image": "",
+        instance_options_1 = {
+            "name": "dummy-test-1",
+            "image": "Test Image",
             "size": "Small",
         }
+        instance_options_2 = {
+            "name": "dummy-test-2",
+            "image": "Test Image",
+            "size": "Medium",
+        }
+        instance_options_3 = {
+            "name": "dummy-test-3",
+            "image": "Test Image",
+            "size": "Large",
+        }
 
-        instance1 = create(self.client, instance_options)
-        instance2 = create(self.client, instance_options)
-        instance3 = create(self.client, instance_options)
+        instance1 = await create(self.client, instance_options_1)
+        instance2 = await create(self.client, instance_options_2)
+        instance3 = await create(self.client, instance_options_3)
 
-        instances = list_instances(self.client)
-        self.assertIsNotNone(instances)
-        self.assertIsInstance(instances, list)
+        self.assertEqual(instance1.name, instance_options_1["name"])
+        self.assertEqual(instance1.image, instance_options_1["image"])
+        self.assertEqual(instance1.size, instance_options_1["size"])
 
-        self.assertEqual(instances[0].id, instance1.id)
-        self.assertEqual(instances[1].id, instance2.id)
-        self.assertEqual(instances[2].id, instance3.id)
+        self.assertEqual(instance2.name, instance_options_2["name"])
+        self.assertEqual(instance2.image, instance_options_2["image"])
+        self.assertEqual(instance2.size, instance_options_2["size"])
 
-        self.assertTrue(destroy(self.client, instance1.id))
-        self.assertTrue(destroy(self.client, instance2.id))
-        self.assertTrue(destroy(self.client, instance3.id))
+        self.assertEqual(instance3.name, instance_options_3["name"])
+        self.assertEqual(instance3.image, instance_options_3["image"])
+        self.assertEqual(instance3.size, instance_options_3["size"])
+
+        self.assertTrue(await remove(self.client, instance1.id))
+        self.assertTrue(await remove(self.client, instance2.id))
+        self.assertTrue(await remove(self.client, instance3.id))
+
+    async def test_dummy_pool(self):
+        pool = Pool("dummy")
+        self.assertIsNotNone(pool)
+        self.assertEqual(pool.name, "dummy")
+
+        instance_options_1 = {
+            "name": "dummy-test-1",
+            "image": "Test Image",
+            "size": "Small",
+        }
+        instance_options_2 = {
+            "name": "dummy-test-2",
+            "image": "Test Image",
+            "size": "Medium",
+        }
+        instance_options_3 = {
+            "name": "dummy-test-3",
+            "image": "Test Image",
+            "size": "Large",
+        }
+
+        self.assertTrue(
+            await pool.add_node(await create(self.client, instance_options_1))
+        )
+        self.assertTrue(
+            await pool.add_node(await create(self.client, instance_options_2))
+        )
+        self.assertTrue(
+            await pool.add_node(await create(self.client, instance_options_3))
+        )
+
+        self.assertEqual(len(await pool.nodes()), 3)
+
+        self.assertEqual(await pool.nodes()[0].name, instance_options_1["name"])
+        self.assertEqual(await pool.nodes()[0].image, instance_options_1["image"])
+        self.assertEqual(await pool.nodes()[0].size, instance_options_1["size"])
+
+        self.assertEqual(await pool.nodes()[1].name, instance_options_2["name"])
+        self.assertEqual(await pool.nodes()[1].image, instance_options_2["image"])
+        self.assertEqual(await pool.nodes()[1].size, instance_options_2["size"])
+
+        self.assertEqual(await pool.nodes()[2].name, instance_options_3["name"])
+        self.assertEqual(await pool.nodes()[2].image, instance_options_3["image"])
+        self.assertEqual(await pool.nodes()[2].size, instance_options_3["size"])
+
+        self.assertTrue(await pool.remove_node(await pool.nodes()[0].id))
+        self.assertTrue(await pool.remove_node(await pool.nodes()[1].id))
+        self.assertTrue(await pool.remove_node(await pool.nodes()[2].id))
+
+        self.assertEqual(len(await pool.nodes()), 1)
 
     def test_destroy_dummy_nodes(self):
         # These options are ignored by the DummyDriver
@@ -75,7 +134,7 @@ class TestDummy(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(instance1.name, "dummy-1")
         self.assertEqual(len(list_instances(self.client)), 1)
 
-        self.assertTrue(destroy(self.client, instance1.id))
+        self.assertTrue(remove(self.client, instance1.id))
         self.assertEqual(len(list_instances(self.client)), 0)
 
         instance2 = create(self.client, instance_options)
@@ -84,7 +143,7 @@ class TestDummy(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(instance2.name, "dummy-1")
         self.assertEqual(len(list_instances(self.client)), 1)
 
-        self.assertTrue(destroy(self.client, instance2.id))
+        self.assertTrue(remove(self.client, instance2.id))
         self.assertEqual(len(list_instances(self.client)), 0)
 
 
