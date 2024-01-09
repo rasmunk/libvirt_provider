@@ -1,11 +1,12 @@
 import unittest
-from libcloud.compute.base import Node
+import asyncio
 from libvirt_provider.instance import create, destroy, list_instances
 from libvirt_provider.defaults import DUMMY
 from libvirt_provider.client import new_client
+from libvirt_provider.models import Node
 
 
-class TestDummy(unittest.TestCase):
+class TestDummy(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         # The DummyDriver creates 2 nodes if creds is set to 0
         # If creds is set to -1, no nodes are created
@@ -14,11 +15,11 @@ class TestDummy(unittest.TestCase):
 
     def tearDown(self):
         # Destroy all remaining instances
-        instances = list_instances(self.client)
+        instances = await list_instances(self.client)
         for instance in instances:
-            destroy(self.client, instance.id)
+            await destroy(self.client, instance.id)
 
-    def test_create_dummy_node(self):
+    async def test_create_dummy_node(self):
         # These options are ignored by the DummyDriver
         # But they must be given to the create method
         instance_options = {
@@ -26,10 +27,10 @@ class TestDummy(unittest.TestCase):
             "image": "Ubuntu 9.10",
             "size": "Small",
         }
-        instance = create(self.client, instance_options)
+        instance = await create(self.client, instance_options)
         self.assertIsNotNone(instance)
         self.assertIsInstance(instance, Node)
-        self.assertTrue(destroy(self.client, instance.id))
+        self.assertTrue(await destroy(self.client, instance.id))
 
     def test_list_dummy_nodes(self):
         # Validate that there are no other instances
