@@ -1,6 +1,6 @@
 import shelve
 from libvirt_provider.models import Node
-from libvirt_provider.utils.io import acquire_lock, release_lock, write, load
+from libvirt_provider.utils.io import acquire_lock, release_lock
 
 
 class Pool:

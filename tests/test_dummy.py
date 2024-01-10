@@ -8,14 +8,14 @@ from libvirt_provider.utils.io import remove as remove_file
 
 
 class TestDummy(unittest.IsolatedAsyncioTestCase):
-    def setUp(self):
+    async def asyncSetUp(self):
         # The DummyDriver creates 2 nodes if creds is set to 0
         # If creds is set to -1, no nodes are created
         creds = -1
         self.client = new_client(DUMMY, creds)
         self.name = "dummy"
 
-    async def tearDown(self):
+    async def asyncTearDown(self):
         # Destroy all instances
         # Ensure that any pool is destroyed
         pool = Pool(self.name)
@@ -97,15 +97,9 @@ class TestDummy(unittest.IsolatedAsyncioTestCase):
             "size": "Large",
         }
 
-        self.assertTrue(
-            await pool.add(await create(self.client, instance_options_1))
-        )
-        self.assertTrue(
-            await pool.add(await create(self.client, instance_options_2))
-        )
-        self.assertTrue(
-            await pool.add(await create(self.client, instance_options_3))
-        )
+        self.assertTrue(await pool.add(await create(self.client, instance_options_1)))
+        self.assertTrue(await pool.add(await create(self.client, instance_options_2)))
+        self.assertTrue(await pool.add(await create(self.client, instance_options_3)))
 
         nodes = sorted(await pool.items(), key=lambda node: node.name)
         self.assertEqual(len(nodes), 3)

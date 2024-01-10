@@ -1,11 +1,10 @@
-import libvirt
 from libvirt_provider.defaults import LIBVIRT, DUMMY
-from libvirt_provider.models import DummyDriver
+from libvirt_provider.models import DummyDriver, LibvirtDriver
 
 
 def discover_provider_client(provider):
     if provider == LIBVIRT:
-        return libvirt.open
+        return LibvirtDriver
     elif provider == DUMMY:
         return DummyDriver
     else:
