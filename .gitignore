@@ -131,6 +131,5 @@ dmypy.json
 # ignore vscode
 .vscode/
 
-# Ignore dummy test files
-dummy.db
-dummy.lock
+# ignore test images
+tests/images

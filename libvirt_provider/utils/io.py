@@ -1,6 +1,7 @@
 import os
 import fcntl
 import yaml
+import shutil
 
 
 def makedirs(path):
@@ -49,6 +50,15 @@ def write(path, content, mode="w", mkdirs=False, opener=None):
         return True
     except Exception as err:
         print("Failed to save file: {} - {}".format(path, err))
+    return False
+
+
+def copy(src, dst):
+    try:
+        shutil.copy(src, dst)
+        return True
+    except Exception as err:
+        print("Failed to copy file: {} - {}".format(src, err))
     return False
 
 
@@ -108,6 +118,10 @@ def remove_content_from_file(path, content, opener=None):
 
 def exists(path):
     return os.path.exists(path)
+
+
+def join(path, *paths):
+    return os.path.join(path, *paths)
 
 
 def chmod(path, mode, **kwargs):

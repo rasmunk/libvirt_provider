@@ -17,11 +17,11 @@ class DummyDriver:
     def __init__(self, *args, **kwargs):
         pass
 
-    def create(self, name=None):
-        return Node(uuid.uuid4(), name)
+    def create(self, name, **kwargs):
+        return Node(str(uuid.uuid4()), name, **kwargs)
 
     def get(self, node_id):
-        return Node(uuid.uuid4(), "dummy-1")
+        return Node(str(uuid.uuid4()), "dummy-node")
 
     def start(self, node):
         return True
@@ -67,7 +67,7 @@ class LibvirtDriver:
             return False
         state = domain.state()
         return Node(
-            domain.UUIDString(), domain.name(), state=state, **domain.metadata()
+            domain.UUIDString(), domain.name(), state=state, config=domain.XMLDesc()
         )
 
     def _get(self, node_id):
@@ -119,7 +119,7 @@ class LibvirtDriver:
         return domain.UUIDString()
 
     def start(self, node_id):
-        domain = self.get(node_id)
+        domain = self._get(node_id)
         if not domain:
             return False
         try:
@@ -130,7 +130,7 @@ class LibvirtDriver:
         return True
 
     def state(self, node_id):
-        domain = self.get(node_id)
+        domain = self._get(node_id)
         if not domain:
             return False
         try:
@@ -141,7 +141,7 @@ class LibvirtDriver:
         return False
 
     def stop(self, node_id):
-        domain = self.get(node_id)
+        domain = self._get(node_id)
         if not domain:
             return False
         try:
@@ -152,7 +152,7 @@ class LibvirtDriver:
         return True
 
     def remove(self, node_id):
-        domain = self.get(node_id)
+        domain = self._get(node_id)
         if not domain:
             return False
         try:

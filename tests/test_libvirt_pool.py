@@ -1,74 +1,76 @@
 import unittest
 import os
+from libvirt_provider.utils.io import remove as remove_file
+from libvirt_provider.utils.io import copy, exists, join
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.client import new_client
-from libvirt_provider.models import Pool, Node
-from libvirt_provider.instance import create, remove, get
-from libvirt_provider.utils.io import remove as remove_file
+from libvirt_provider.pool import Pool
+from libvirt_provider.models import Node
+from libvirt_provider.instance import create, remove
 
 
 class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.name = "libvirt-pool"
+        self.base_image = join("tests", "images", "Rocky-9.qcow2")
+        self.assertTrue(os.path.exists(self.base_image))
+
         open_uri = "qemu:///session"
         self.client = new_client(LIBVIRT, open_uri=open_uri)
+
+        for i in range(2):
+            test_image = join("tests", "images", "Rocky-9-{}.qcow2".format(i))
+            self.assertTrue(copy(self.base_image, test_image))
+            self.assertTrue(exists(test_image))
 
     async def asyncTearDown(self):
         # Ensure that any pool is destroyed
         pool = Pool(self.name)
         for node in await pool.items():
             self.assertTrue(await remove(self.client, node.id))
-        self.assertTrue(remove_file(self.name))
+        self.assertTrue(await pool.flush())
+        self.assertEqual(len(await pool.items()), 0)
+        self.assertTrue(await pool.remove_persistence())
         self.client.close()
 
+        for i in range(2):
+            test_image = join("tests", "images", "Rocky-9-{}.qcow2".format(i))
+            self.assertTrue(remove_file(test_image))
+            self.assertFalse(exists(test_image))
+
     async def test_libvirt_pool(self):
-        db_name = "libvirt"
-        pool = Pool(db_name)
-        self.assertIsNotNone(pool)
-        self.assertEqual(pool.name, db_name)
+        for i in range(2):
+            test_image = os.path.abspath(
+                join("tests", "images", "Rocky-9-{}.qcow2".format(i))
+            )
 
-        node_options_1 = {
-            "name": "libvirt-test-1",
-            "disk_image_path": os.path.join(
-                "iso", "Rocky-9-1.qcow2"
-            ),
-            "memory_size": "1024",
-        }
-        node_options_2 = {
-            "name": "libvirt-test-2",
-            "disk_image_path": os.path.join(
-                "iso", "Rocky-9-2.qcow2"
-            ),
-            "memory_size": "2048",
-        }
-        node_options_3 = {
-            "name": "libvirt-test-3",
-            "disk_image_path": os.path.join(
-                "iso", "Rocky-9-3.qcow2"
-            ),
-            "memory_size": "4096",
-        }
+            self.assertTrue(copy(self.base_image, test_image))
+            self.assertTrue(exists(test_image))
 
-        self.assertTrue(await pool.add(await create(self.client, node_options_1)))
-        self.assertTrue(await pool.add(await create(self.client, node_options_2)))
-        self.assertTrue(await pool.add(await create(self.client, node_options_3)))
+            pool = Pool(self.name)
+            self.assertIsNotNone(pool)
+            self.assertEqual(pool.name, self.name)
+            self.assertEqual(len(await pool.items()), 0)
 
-        instance1 = await get(self.client, node_options_1["name"])
-        instance2 = await get(self.client, node_options_2["name"])
-        instance3 = await get(self.client, node_options_3["name"])
+            node_options = {
+                "name": "libvirt-test-{}".format(i),
+                "disk_image_path": test_image,
+                "memory_size": "4096",
+            }
 
-        self.assertEqual(instance1.name, node_options_1["name"])
-        self.assertEqual(instance1.image, node_options_1["image"])
-        self.assertEqual(instance1.size, node_options_1["size"])
+            node = await create(self.client, node_options)
+            self.assertIsInstance(node, Node)
+            self.assertEqual(node.name, node_options["name"])
+            self.assertTrue(await pool.add(node))
+            self.assertEqual(len(await pool.items()), 1)
 
-        self.assertEqual(instance2.name, node_options_2["name"])
-        self.assertEqual(instance2.image, node_options_2["image"])
-        self.assertEqual(instance2.size, node_options_2["size"])
+            pool_node = await pool.get(node.id)
+            self.assertIsInstance(pool_node, Node)
+            self.assertEqual(pool_node.name, node_options["name"])
 
-        self.assertEqual(instance3.name, node_options_3["name"])
-        self.assertEqual(instance3.image, node_options_3["image"])
-        self.assertEqual(instance3.size, node_options_3["size"])
+            self.assertTrue(await pool.remove(node.id))
+            self.assertFalse(await pool.get(node.id))
+            self.assertEqual(len(await pool.items()), 0)
 
-        self.assertTrue(await remove(self.client, instance1.id))
-        self.assertTrue(await remove(self.client, instance2.id))
-        self.assertTrue(await remove(self.client, instance3.id))
+            self.assertTrue(await remove(self.client, node.id))
+
