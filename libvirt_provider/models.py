@@ -87,6 +87,7 @@ class LibvirtDriver:
 
     def _create(
         self,
+        domain_type="kvm",
         name=None,
         disk_image_path=None,
         memory_size="1024",
@@ -95,7 +96,7 @@ class LibvirtDriver:
         machine="pc",
     ):
         xml_desc = f"""
-        <domain type='kvm'>
+        <domain type='{domain_type}'>
           <name>{name}</name>
           <metadata>
           </metadata>

@@ -73,4 +73,3 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(len(await pool.items()), 0)
 
             self.assertTrue(await remove(self.client, node.id))
-
