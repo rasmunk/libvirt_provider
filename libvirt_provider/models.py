@@ -98,12 +98,10 @@ class LibvirtDriver:
         xml_desc = f"""
         <domain type='{domain_type}'>
           <name>{name}</name>
-          <metadata>
-          </metadata>
           <memory>{memory_size}</memory>
           <vcpu>{num_vcpus}</vcpu>
           <os>
-            <type arch='{cpu_architecture}' machine='{machine}'>hvm</type>
+            <type>hvm</type>
           </os>
           <devices>
             <disk type='file' device='disk'>
