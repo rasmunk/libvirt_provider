@@ -1,7 +1,10 @@
 import unittest
 import os
+import wget
+from deling.io.datastores.core import SFTPStore
+from deling.authenticators.ssh import SSHAuthenticator
 from libvirt_provider.utils.io import remove as remove_file
-from libvirt_provider.utils.io import copy, join
+from libvirt_provider.utils.io import copy, join, makedirs, exists
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.models import Node
 from libvirt_provider.client import new_client
@@ -11,10 +14,37 @@ from libvirt_provider.instance import create, remove, stop, get, state
 class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.name = "libvirt-remote"
-        self.base_image = join("tests", "images", "Rocky-9.qcow2")
-        self.assertTrue(os.path.exists(self.base_image))
+        images_dir = join("tests", "images")
+        if not exists(images_dir):
+            self.assertTrue(makedirs(images_dir))
+
+        self.image = join(images_dir, "Rocky-9.qcow2")
+        if not exists(self.image):
+            # Download the image
+            url = "https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
+            try:
+                wget.download(url, self.image)
+            except Exception as err:
+                print("Failed to download image: {} - {}".format(url, err))
+                self.assertFalse(True)
+        self.assertTrue(exists(self.image))
 
         remote_hostname = os.environ.get("LIBVIRT_REMOTE_HOSTNAME", "127.0.0.1")
+        remote_port = os.environ.get("LIBVIRT_REMOTE_PORT", "2222")
+        # Upload the image to the remote host
+        self.share = SFTPStore(
+            host=remote_hostname,
+            authenticator=SSHAuthenticator(
+                ssh_private_key_file=os.environ.get(
+                    "LIBVIRT_REMOTE_SSH_KEY", "~/.ssh/id_rsa"
+                ),
+            ),
+            port=remote_port,
+        )
+
+        self.share.write(self.image, self.image)
+        self.assertTrue(self.share.exists(self.image))
+
         remote_uri = "qemu+ssh://{}/session".format(remote_hostname)
         self.client = new_client(LIBVIRT, open_uri=remote_uri)
 
