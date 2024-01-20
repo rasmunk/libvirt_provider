@@ -1,7 +1,8 @@
 import unittest
 import os
+import wget
 from libvirt_provider.utils.io import remove as remove_file
-from libvirt_provider.utils.io import copy, join
+from libvirt_provider.utils.io import copy, join, makedirs, exists
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.models import Node
 from libvirt_provider.client import new_client
@@ -13,8 +14,20 @@ from deling.authenticators.ssh import SSHAuthenticator
 class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.name = "libvirt-remote"
-        self.base_image = join("tests", "images", "Rocky-9.qcow2")
-        self.assertTrue(os.path.exists(self.base_image))
+        images_dir = join("tests", "images")
+        if not exists(images_dir):
+            self.assertTrue(makedirs(images_dir))
+
+        self.image = join(images_dir, "Rocky-9.qcow2")
+        if not exists(self.image):
+            # Download the image
+            url = "https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
+            try:
+                wget.download(url, self.image)
+            except Exception as err:
+                print("Failed to download image: {} - {}".format(url, err))
+                self.assertFalse(True)
+        self.assertTrue(exists(self.image))
 
         username = os.environ.get("LIBVIRT_REMOTE_USERNAME", "mountuser")
         password = os.environ.get("LIBVIRT_REMOTE_IDENTITY_FILE", "Passw0rd!")
