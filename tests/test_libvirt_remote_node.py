@@ -6,6 +6,8 @@ from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.models import Node
 from libvirt_provider.client import new_client
 from libvirt_provider.instance import create, remove, stop, get, state
+from deling.io.datastores.core import SFTPStore
+from deling.authenticators.ssh import SSHAuthenticator
 
 
 class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
@@ -14,8 +16,16 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
         self.base_image = join("tests", "images", "Rocky-9.qcow2")
         self.assertTrue(os.path.exists(self.base_image))
 
-        remote_hostname = os.environ.get("LIBVIRT_REMOTE_HOSTNAME", "127.0.0.1")
-        remote_uri = "qemu+ssh://{}/session".format(remote_hostname)
+        username = os.environ.get("LIBVIRT_REMOTE_USERNAME", "mountuser")
+        password = os.environ.get("LIBVIRT_REMOTE_IDENTITY_FILE", "Passw0rd!")
+        hostname = os.environ.get("LIBVIRT_REMOTE_HOSTNAME", "127.0.0.1")
+        self.datastore = SFTPStore(
+            host=hostname,
+            port=2222,
+            authenticator=SSHAuthenticator(username=username, password=password),
+        )
+
+        remote_uri = f"qemu+ssh://{username}@{hostname}/session"
         self.client = new_client(LIBVIRT, open_uri=remote_uri)
 
         for i in range(2):
