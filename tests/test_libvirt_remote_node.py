@@ -23,6 +23,7 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
             # Download the image
             url = "https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
             try:
+                print("Downloading image: {} for testing".format(url))
                 wget.download(url, self.image)
             except Exception as err:
                 print("Failed to download image: {} - {}".format(url, err))
@@ -37,6 +38,8 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
             port=2222,
             authenticator=SSHAuthenticator(username=username, password=password),
         )
+        self.assertTrue(self.datastore.mkdir(images_dir, recursive=True))
+        self.assertTrue(self.datastore.write(self.image, self.image))
 
         remote_uri = f"qemu+ssh://{username}@{hostname}/session"
         self.client = new_client(LIBVIRT, open_uri=remote_uri)
