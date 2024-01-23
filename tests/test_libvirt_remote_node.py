@@ -2,14 +2,13 @@ import unittest
 import os
 import wget
 from libvirt_provider.utils.io import remove as remove_file
-from libvirt_provider.utils.io import copy, join, makedirs, exists
+from libvirt_provider.utils.io import copy, join, makedirs, exists, hashsum
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.models import Node
 from libvirt_provider.client import new_client
 from libvirt_provider.instance import create, remove, stop, get, state
 from deling.io.datastores.core import SFTPStore
 from deling.authenticators.ssh import SSHAuthenticator
-
 
 class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
@@ -31,19 +30,25 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(exists(self.image))
 
         username = os.environ.get("LIBVIRT_REMOTE_USERNAME", "mountuser")
-        password = os.environ.get("LIBVIRT_REMOTE_IDENTITY_FILE", "Passw0rd!")
+        password = os.environ.get("LIBVIRT_REMOTE_PASSWORD", "Passw0rd!")
+        private_key_file = os.environ.get("LIBVIRT_REMOTE_PRIVATE_KEY_FILE", None)
         hostname = os.environ.get("LIBVIRT_REMOTE_HOSTNAME", "127.0.0.1")
+        port = os.environ.get("LIBVIRT_REMOTE_PORT", 2222)
+
         self.datastore = SFTPStore(
             host=hostname,
-            port=2222,
-            authenticator=SSHAuthenticator(username=username, password=password),
+            port=port,
+            authenticator=SSHAuthenticator(
+                username=username,
+                password=password,
+                private_key_file=private_key_file
+            ),
         )
         self.assertTrue(self.datastore.mkdir(images_dir, recursive=True))
-        self.assertTrue(self.datastore.write(self.image, self.image))
+        self.assertTrue(self.datastore.upload(self.image, self.image))
 
         remote_uri = f"qemu+ssh://{username}@{hostname}/session"
         self.client = new_client(LIBVIRT, open_uri=remote_uri)
-
         for i in range(2):
             test_image = join(
                 "tests", "images", "{}-Rocky-9-{}.qcow2".format(self.name, i)
