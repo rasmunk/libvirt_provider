@@ -10,28 +10,32 @@ from libvirt_provider.instance import create, remove, stop, get, state
 from deling.io.datastores.core import SFTPStore
 from deling.authenticators.ssh import SSHAuthenticator
 
+
 class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        self.name = "libvirt-remote"
-        images_dir = join("tests", "images")
-        if not exists(images_dir):
-            self.assertTrue(makedirs(images_dir))
+        self.architecture = "aarch64"
+        self.name = f"libvirt-remote-{self.architecture}"
+        self.images_dir = join("tests", "images", self.architecture)
+        if not exists(self.images_dir):
+            self.assertTrue(makedirs(self.images_dir))
 
-        self.image = join(images_dir, "Rocky-9.qcow2")
+        self.image = join(self.images_dir, f"{self.name}-Rocky-9.qcow2")
         if not exists(self.image):
             # Download the image
-            url = "https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
+            url = f"https://download.rockylinux.org/pub/rocky/9/images/{self.architecture}/Rocky-9-GenericCloud-Base.latest.{self.architecture}.qcow2"
             try:
-                print("Downloading image: {} for testing".format(url))
+                print(f"Downloading image: {url} for testing")
                 wget.download(url, self.image)
             except Exception as err:
-                print("Failed to download image: {} - {}".format(url, err))
+                print(f"Failed to download image: {url} - {err}")
                 self.assertFalse(True)
         self.assertTrue(exists(self.image))
 
         username = os.environ.get("LIBVIRT_REMOTE_USERNAME", "mountuser")
         password = os.environ.get("LIBVIRT_REMOTE_PASSWORD", "Passw0rd!")
-        private_key_file = os.environ.get("LIBVIRT_REMOTE_PRIVATE_KEY_FILE", None)
+        private_key_file = os.environ.get(
+            "LIBVIRT_REMOTE_PRIVATE_KEY_FILE", None,
+        )
         hostname = os.environ.get("LIBVIRT_REMOTE_HOSTNAME", "127.0.0.1")
         port = os.environ.get("LIBVIRT_REMOTE_PORT", 2222)
 
@@ -39,40 +43,42 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
             host=hostname,
             port=port,
             authenticator=SSHAuthenticator(
-                username=username,
-                password=password,
-                private_key_file=private_key_file
+                username=username, password=password, private_key_file=private_key_file
             ),
         )
-        self.assertTrue(self.datastore.mkdir(images_dir, recursive=True))
-        self.assertTrue(self.datastore.upload(self.image, self.image))
+        self.assertTrue(self.datastore.mkdir(self.images_dir, recursive=True))
+        if not self.datastore.exists(self.image):
+            self.assertTrue(self.datastore.upload(self.image, self.image))
+
+        for i in range(2):
+            test_image = join(
+                self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2"
+            )
+            if not self.datastore.exists(test_image):
+                self.assertTrue(self.datastore.copy(self.image, test_image))
 
         remote_uri = f"qemu+ssh://{username}@{hostname}/session"
         self.client = new_client(LIBVIRT, open_uri=remote_uri)
-        for i in range(2):
-            test_image = join(
-                "tests", "images", "{}-Rocky-9-{}.qcow2".format(self.name, i)
-            )
-            self.assertTrue(copy(self.base_image, test_image))
-            self.assertTrue(os.path.exists(test_image))
 
     async def asyncTearDown(self):
         for i in range(2):
             test_image = join(
-                "tests", "images", "{}-Rocky-9-{}.qcow2".format(self.name, i)
+                self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2"
             )
-            self.assertTrue(remove_file(test_image))
-            self.assertFalse(os.path.exists(test_image))
+            self.assertTrue(self.datastore.remove(test_image))
+            self.assertFalse(self.datastore.exists(test_image))
         self.client.close()
 
     async def test_create_node(self):
-        test_image = os.path.abspath(
-            join("tests", "images", "{}-Rocky-9-0.qcow2".format(self.name))
-        )
+        test_image = self.datastore.realpath(join(self.images_dir, f"{self.name}-Rocky-9-0.qcow2"))
         node_options = {
             "name": "test-1",
             "disk_image_path": test_image,
+            "disk_target_dev": "vda",
+            "disk_target_bus": "virtio",
             "memory_size": "2048",
+            "cpu_architecture": self.architecture,
+            "domain_type": "qemu"
         }
 
         node = await create(self.client, node_options)
@@ -81,11 +87,13 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(await remove(self.client, node.id))
 
     async def test_stop_node(self):
-        test_image = os.path.abspath(join("tests", "images", "Rocky-9-1.qcow2"))
+        test_image = self.datastore.realpath(join(self.images_dir, "{self.name}-Rocky-9-1.qcow2"))
         node_options = {
             "name": "test-2",
             "disk_image_path": test_image,
+            "disk_target_bus": "sata",
             "memory_size": "2048",
+            "cpu_architecture": self.architecture,
         }
 
         new_node = await create(self.client, node_options)

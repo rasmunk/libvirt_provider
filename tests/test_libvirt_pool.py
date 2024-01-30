@@ -19,7 +19,7 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
         self.client = new_client(LIBVIRT, open_uri=open_uri)
 
         for i in range(2):
-            test_image = join("tests", "images", "Rocky-9-{}.qcow2".format(i))
+            test_image = join("tests", "images", f"Rocky-9-{i}.qcow2")
             self.assertTrue(copy(self.base_image, test_image))
             self.assertTrue(exists(test_image))
 
@@ -34,14 +34,14 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
         self.client.close()
 
         for i in range(2):
-            test_image = join("tests", "images", "Rocky-9-{}.qcow2".format(i))
+            test_image = join("tests", "images", f"Rocky-9-{i}.qcow2")
             self.assertTrue(remove_file(test_image))
             self.assertFalse(exists(test_image))
 
     async def test_libvirt_pool(self):
         for i in range(2):
             test_image = os.path.abspath(
-                join("tests", "images", "Rocky-9-{}.qcow2".format(i))
+                join("tests", "images", f"Rocky-9-{i}.qcow2")
             )
 
             self.assertTrue(copy(self.base_image, test_image))
@@ -53,7 +53,7 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(len(await pool.items()), 0)
 
             node_options = {
-                "name": "libvirt-test-{}".format(i),
+                "name": f"libvirt-test-{i}",
                 "disk_image_path": test_image,
                 "memory_size": "4096",
             }

@@ -89,7 +89,11 @@ class LibvirtDriver:
         self,
         domain_type="kvm",
         name=None,
+        disk_type="file",
+        disk_driver_type="qcow2",
         disk_image_path=None,
+        disk_target_dev="hda",
+        disk_target_bus="ide",
         memory_size="1024",
         num_vcpus=1,
         cpu_architecture="x86_64",
@@ -104,10 +108,11 @@ class LibvirtDriver:
             <type>hvm</type>
           </os>
           <devices>
-            <disk type='file' device='disk'>
-              <driver name='qemu' type='qcow2'/>
+            <emulator>/usr/bin/qemu-system-{cpu_architecture}</emulator>
+            <disk type='{disk_type}' device='disk'>
+              <driver name='qemu' type='{disk_driver_type}'/>
               <source file='{disk_image_path}'/>
-              <target dev='hda' bus='ide'/>
+              <target dev='{disk_target_dev}' bus='{disk_target_bus}'/>
             </disk>
           </devices>
         </domain>
