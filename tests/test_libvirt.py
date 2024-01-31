@@ -1,7 +1,8 @@
 import unittest
 import os
+import wget
 from libvirt_provider.utils.io import remove as remove_file
-from libvirt_provider.utils.io import copy, join
+from libvirt_provider.utils.io import copy, join, exists, makedirs
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.models import Node
 from libvirt_provider.client import new_client
@@ -10,27 +11,43 @@ from libvirt_provider.instance import create, remove, stop, get, state
 
 class TestLibvirt(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        self.base_image = join("tests", "images", "Rocky-9.qcow2")
-        self.assertTrue(os.path.exists(self.base_image))
+        self.architecture = "x86_64"
+        self.name = f"libvirt-{self.architecture}"
+        self.images_dir = join("tests", "images", self.architecture)
+        if not exists(self.images_dir):
+            self.assertTrue(makedirs(self.images_dir))
+
+        self.image = join(self.images_dir, f"{self.name}-Rocky-9.qcow2")
+        if not exists(self.image):
+            # Download the image
+            url = f"https://download.rockylinux.org/pub/rocky/9/images/{self.architecture}/Rocky-9-GenericCloud-Base.latest.{self.architecture}.qcow2"
+            try:
+                print(f"Downloading image: {url} for testing")
+                wget.download(url, self.image)
+            except Exception as err:
+                print(f"Failed to download image: {url} - {err}")
+                self.assertFalse(True)
+        self.assertTrue(exists(self.image))
 
         open_uri = "qemu:///session"
         self.client = new_client(LIBVIRT, open_uri=open_uri)
 
         for i in range(2):
-            test_image = join("tests", "images", "Rocky-9-{}.qcow2".format(i))
-            self.assertTrue(copy(self.base_image, test_image))
-            self.assertTrue(os.path.exists(test_image))
+            test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
+            if not exists(test_image):
+                self.assertTrue(copy(self.image, test_image))
 
     async def asyncTearDown(self):
+        for i in range(2):
+            test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
+            self.assertTrue(remove_file(test_image))
+            self.assertFalse(exists(test_image))
         self.client.close()
 
-        for i in range(2):
-            test_image = join("tests", "images", "Rocky-9-{}.qcow2".format(i))
-            self.assertTrue(remove_file(test_image))
-            self.assertFalse(os.path.exists(test_image))
-
     async def test_create_node(self):
-        test_image = os.path.abspath(join("tests", "images", "Rocky-9-0.qcow2"))
+        test_image = os.path.abspath(
+            join(self.images_dir, f"{self.name}-Rocky-9-0.qcow2")
+        )
         node_options = {
             "name": "test-1",
             "disk_image_path": test_image,
@@ -42,7 +59,9 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(await remove(self.client, node.id))
 
     async def test_stop_node(self):
-        test_image = os.path.abspath(join("tests", "images", "Rocky-9-1.qcow2"))
+        test_image = os.path.abspath(
+            join(self.images_dir, f"{self.name}-Rocky-9-1.qcow2")
+        )
         node_options = {
             "name": "test-2",
             "disk_image_path": test_image,
