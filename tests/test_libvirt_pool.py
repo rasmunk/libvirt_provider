@@ -40,9 +40,7 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
 
     async def test_libvirt_pool(self):
         for i in range(2):
-            test_image = os.path.abspath(
-                join("tests", "images", f"Rocky-9-{i}.qcow2")
-            )
+            test_image = os.path.abspath(join("tests", "images", f"Rocky-9-{i}.qcow2"))
 
             self.assertTrue(copy(self.base_image, test_image))
             self.assertTrue(exists(test_image))

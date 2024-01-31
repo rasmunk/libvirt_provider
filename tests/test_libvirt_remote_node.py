@@ -13,7 +13,7 @@ from deling.authenticators.ssh import SSHAuthenticator
 
 class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        self.architecture = "aarch64"
+        self.architecture = "x86_64"
         self.name = f"libvirt-remote-{self.architecture}"
         self.images_dir = join("tests", "images", self.architecture)
         if not exists(self.images_dir):
@@ -34,7 +34,8 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
         username = os.environ.get("LIBVIRT_REMOTE_USERNAME", "mountuser")
         password = os.environ.get("LIBVIRT_REMOTE_PASSWORD", "Passw0rd!")
         private_key_file = os.environ.get(
-            "LIBVIRT_REMOTE_PRIVATE_KEY_FILE", None,
+            "LIBVIRT_REMOTE_PRIVATE_KEY_FILE",
+            None,
         )
         hostname = os.environ.get("LIBVIRT_REMOTE_HOSTNAME", "127.0.0.1")
         port = os.environ.get("LIBVIRT_REMOTE_PORT", 2222)
@@ -51,9 +52,7 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(self.datastore.upload(self.image, self.image))
 
         for i in range(2):
-            test_image = join(
-                self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2"
-            )
+            test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
             if not self.datastore.exists(test_image):
                 self.assertTrue(self.datastore.copy(self.image, test_image))
 
@@ -62,23 +61,19 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self):
         for i in range(2):
-            test_image = join(
-                self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2"
-            )
+            test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
             self.assertTrue(self.datastore.remove(test_image))
             self.assertFalse(self.datastore.exists(test_image))
         self.client.close()
 
     async def test_create_node(self):
-        test_image = self.datastore.realpath(join(self.images_dir, f"{self.name}-Rocky-9-0.qcow2"))
+        test_image = self.datastore.realpath(
+            join(self.images_dir, f"{self.name}-Rocky-9-0.qcow2")
+        )
         node_options = {
             "name": "test-1",
             "disk_image_path": test_image,
-            "disk_target_dev": "vda",
-            "disk_target_bus": "virtio",
             "memory_size": "2048",
-            "cpu_architecture": self.architecture,
-            "domain_type": "qemu"
         }
 
         node = await create(self.client, node_options)
@@ -87,7 +82,9 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(await remove(self.client, node.id))
 
     async def test_stop_node(self):
-        test_image = self.datastore.realpath(join(self.images_dir, "{self.name}-Rocky-9-1.qcow2"))
+        test_image = self.datastore.realpath(
+            join(self.images_dir, f"{self.name}-Rocky-9-1.qcow2")
+        )
         node_options = {
             "name": "test-2",
             "disk_image_path": test_image,
