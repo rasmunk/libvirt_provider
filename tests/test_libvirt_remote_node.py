@@ -37,6 +37,12 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
             "LIBVIRT_REMOTE_PRIVATE_KEY_FILE",
             None,
         )
+        public_key_file = os.environ.get(
+            "LIBVIRT_REMOTE_PUBLIC_KEY_FILE",
+            None,
+        )
+        if not public_key_file and private_key_file:
+            public_key_file = f"{private_key_file}.pub"
         hostname = os.environ.get("LIBVIRT_REMOTE_HOSTNAME", "127.0.0.1")
         port = os.environ.get("LIBVIRT_REMOTE_PORT", 2222)
 
@@ -44,7 +50,10 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
             host=hostname,
             port=port,
             authenticator=SSHAuthenticator(
-                username=username, password=password, private_key_file=private_key_file
+                username=username,
+                password=password,
+                private_key_file=private_key_file,
+                public_key_file=public_key_file
             ),
         )
         self.assertTrue(self.datastore.mkdir(self.images_dir, recursive=True))
