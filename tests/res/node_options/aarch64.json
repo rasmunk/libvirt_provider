@@ -1,0 +1,7 @@
+{
+    "domain_type": "qemu",
+    "disk_target_dev": "vda",
+    "disk_target_bus": "virtio",
+    "cpu_architecture": "aarch64",
+    "machine": "virt"
+}

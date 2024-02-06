@@ -2,7 +2,7 @@ import unittest
 import os
 import wget
 from libvirt_provider.utils.io import remove as remove_file
-from libvirt_provider.utils.io import copy, exists, join, makedirs
+from libvirt_provider.utils.io import copy, exists, join, makedirs, load_json
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.client import new_client
 from libvirt_provider.pool import Pool
@@ -59,6 +59,13 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(copy(self.image, test_image))
             self.assertTrue(exists(test_image))
 
+            # Load architecture node_options
+            node_options_path = join(
+                "tests", "res", "node_options", f"{self.architecture}.json"
+            )
+            loaded_node_options = load_json(node_options_path)
+            self.assertIsInstance(loaded_node_options, dict)
+
             pool = Pool(self.name)
             self.assertIsNotNone(pool)
             self.assertEqual(pool.name, self.name)
@@ -68,6 +75,7 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
                 "name": f"libvirt-test-{i}",
                 "disk_image_path": test_image,
                 "memory_size": "4096",
+                **loaded_node_options,
             }
 
             node = await create(self.client, node_options)

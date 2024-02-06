@@ -1,5 +1,7 @@
 import libvirt
 import uuid
+import jinja2
+from libvirt_provider.utils.io import load, load_json
 
 
 class Node:
@@ -79,11 +81,47 @@ class LibvirtDriver:
             return False
         return False
 
-    def create(self, name, **kwargs):
-        created_id = self._create(name=name, **kwargs)
+    def create(self, name, template_path=None, **kwargs):
+        if not template_path:
+            created_id = self._create(name=name, **kwargs)
+        else:
+            created_id = self._create_from_template(name, template_path, **kwargs)
         if not created_id:
             return False
         return self.get(created_id)
+
+    def _load_jinja_template(self, path):
+        template_content = load(path)
+        if not template_content:
+            return None
+        return jinja2.Template(template_content)
+
+    def _create_from_template(self, name, path, **kwargs):
+        if ".j2" in path:
+            template_content = self._load_jinja_template(path)
+            if not template_content:
+                return None
+            xml_desc = template_content.render(name=name, **kwargs)
+        elif ".json" in path:
+            template_content = load_json(path)
+            if not template_content:
+                return None
+            template_content["name"] = name
+            template_content = template_content.update(kwargs)
+            xml_desc = template_content
+        else:
+            # Expect it just to be a string template
+            template_content = load(path)
+            if not template_content:
+                return None
+            xml_desc = template_content.format(name=name, **kwargs)
+
+        if not xml_desc:
+            return None
+        domain = self._conn.createXML(xml_desc)
+        if domain:
+            return domain.UUIDString()
+        return None
 
     def _create(
         self,
@@ -98,6 +136,9 @@ class LibvirtDriver:
         num_vcpus=1,
         cpu_architecture="x86_64",
         machine="pc",
+        serial_type="pty",
+        serial_type_target_port=0,
+        console_type="pty",
     ):
         xml_desc = f"""
         <domain type='{domain_type}'>
@@ -105,7 +146,7 @@ class LibvirtDriver:
           <memory>{memory_size}</memory>
           <vcpu>{num_vcpus}</vcpu>
           <os>
-            <type>hvm</type>
+            <type arch='{cpu_architecture}' machine='{machine}'>hvm</type>
           </os>
           <devices>
             <emulator>/usr/bin/qemu-system-{cpu_architecture}</emulator>
@@ -114,6 +155,12 @@ class LibvirtDriver:
               <source file='{disk_image_path}'/>
               <target dev='{disk_target_dev}' bus='{disk_target_bus}'/>
             </disk>
+            <serial type='{serial_type}'>
+              <target port='{serial_type_target_port}'/>
+            </serial>
+            <console type='{console_type}'>
+              <target type='serial' port='{serial_type_target_port}'/>
+            </console>
           </devices>
         </domain>
         """

@@ -1,0 +1,22 @@
+<domain type='kvm'>
+    <name>kvm-test-1</name>
+    <memory>1024</memory>
+    <vcpu>1</vcpu>
+    <os>
+        <type arch='x86_64' machine='pc'>hvm</type>
+    </os>
+    <devices>
+        <emulator>/usr/bin/qemu-system-x86_64</emulator>
+        <disk type='file' device='disk'>
+            <driver name='qemu' type='qcow2'/>
+            <source file='{disk_image_path}'/>
+            <target dev='hda' bus='ide'/>
+        </disk>
+        <serial type='pty'>
+            <target port='0'/>
+        </serial>
+        <console type='pty'>
+            <target type='serial' port='0'/>
+        </console>
+    </devices>
+</domain>

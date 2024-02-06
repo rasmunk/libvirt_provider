@@ -2,6 +2,7 @@ import os
 import fcntl
 import yaml
 import shutil
+import json
 
 
 def makedirs(path):
@@ -163,6 +164,17 @@ def load_yaml(path, opener=None):
             return yaml.safe_load(fh)
     except IOError as err:
         print("Failed to load yaml: {} - {}".format(path, err))
+    return False
+
+
+def load_json(path, opener=None):
+    if not opener:
+        opener = open
+    try:
+        with opener(path, "r") as fh:
+            return json.load(fh)
+    except IOError as err:
+        print("Failed to load json: {} - {}".format(path, err))
     return False
 
 
