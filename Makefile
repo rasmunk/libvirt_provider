@@ -13,9 +13,7 @@ ifneq ($(shell test -e .env && echo yes), yes)
 endif
 endif
 
-clean:
-	$(MAKE) distclean
-	$(MAKE) venv-clean
+clean: distclean venv-clean
 	rm -fr .env
 	rm -fr .pytest_cache
 	rm -fr tests/__pycache__
@@ -26,10 +24,9 @@ dist:
 distclean:
 	rm -fr dist build $(PACKAGE_NAME).egg-info $(PACKAGE_NAME_FORMATTED).egg-info
 
-maintainer-clean:
+maintainer-clean: distclean
 	@echo 'This command is intended for maintainers to use; it'
 	@echo 'deletes files that may need special tools to rebuild.'
-	$(MAKE) distclean
 
 install-dev:
 	$(VENV)/pip install -r requirements-dev.txt
@@ -40,8 +37,7 @@ uninstall-dev:
 install-dep:
 	$(VENV)/pip install -r requirements.txt
 
-install:
-	$(MAKE) install-dep
+install: install-dep
 	$(VENV)/pip install .
 
 uninstall:
