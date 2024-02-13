@@ -1,0 +1,32 @@
+environments:
+  pypi_package:
+    environment_variables:
+      GIT_USER: "{{SECRET:[github][username]}}"
+    pipelines:
+      - libvirt_provider
+pipelines:
+  libvirt_provider:
+    group: pypi_package
+    locking: off
+    timer:
+      # Run on the 1st at 00:00 of every month
+      spec: "0 0 0 1 * ? *"
+      only_on_changes: no
+    materials:
+      libvirt_provider_git:  # this is the name of material
+        # says about type of material and url at once
+        git: https://github.com/rasmunk/libvirt_provider.git
+        branch: master
+        destination: libvirt_provider
+      publish_python_git:
+        git: https://github.com/rasmunk/publish-python-scripts.git
+        branch: main
+        username: "{{SECRET:[pypi][libvirt_provider][username]}}"
+        password: "{{SECRET:[pypi]][libvirt_provider][password]}}"
+        destination: publish-python-scripts
+    parameters:
+      ARGS: ''
+      SRC_DIRECTORY: libvirt_provider
+      TEST_DIRECTORY: libvirt_provider
+      PUSH_DIRECTORY: publish-python-scripts
+    template: pypi_package
