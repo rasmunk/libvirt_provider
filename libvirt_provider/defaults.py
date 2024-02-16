@@ -45,9 +45,9 @@ valid_instance_config = {
     "ssh_authorized_key": str,
 }
 
-default_config = {
-    "instance": default_instance_config,
-}
+# default_config = {
+#     "instance": default_instance_config,
+# }
 
 # libvirt_default_config = {LIBVIRT: default_config}
 
