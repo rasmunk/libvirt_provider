@@ -1,8 +1,7 @@
 import unittest
 import os
 import wget
-from libvirt_provider.utils.io import remove as remove_file
-from libvirt_provider.utils.io import copy, join, makedirs, exists, hashsum, load_json
+from libvirt_provider.utils.io import join, makedirs, exists, load_json
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.models import Node
 from libvirt_provider.client import new_client

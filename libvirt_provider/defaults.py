@@ -1,3 +1,5 @@
+PACKAGE_NAME = "libvirt_provider"
+
 PROVIDER = "PROVIDER"
 
 # Profile group defaults
