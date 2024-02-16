@@ -112,7 +112,6 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(node, Node)
         self.assertTrue(await remove(self.client, node.id))
 
-
     async def test_create_node_with_jinja_template(self):
         test_image = os.path.abspath(
             join(self.images_dir, f"{self.name}-Rocky-9-3.qcow2")
