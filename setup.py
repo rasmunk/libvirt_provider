@@ -39,7 +39,7 @@ setup(
         "dev": read_req("requirements-dev.txt"),
     },
     # Ensures that the plugin can be discovered/loaded by corc
-    entry_points={"corc.plugins": ["libvirt_provider=libvirt_provider.orchestration"]},
+    entry_points={"corc.plugins.orchestration": ["libvirt_provider=libvirt_provider.instance"]},
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
