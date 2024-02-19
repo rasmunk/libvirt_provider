@@ -18,7 +18,7 @@ def driver_cli(parser):
 
 def functions_cli(
     parser,
-    module_cli_prefix="{}.cli.parsers".format(PACKAGE_NAME),
+    module_cli_prefix="{}.cli.input_groups".format(PACKAGE_NAME),
 ):
     actions = ["create", "remove", "start", "stop", "state", "get"]
     for action in actions:
@@ -26,13 +26,17 @@ def functions_cli(
             action, help="{} a VM".format(action.capitalize())
         )
 
+        function_name = "add_instance_group".format(action)
+        module_path = "{}.instance".format(module_cli_prefix)
+        module_name = "instance"
         operation_input_groups_func = import_from_module(
-            module_cli_prefix, "instance", operation
+            module_path, module_name, function_name
         )
 
+        provider_groups = []
         argument_groups = []
         skip_groups = []
-        input_groups = operation_input_groups_func(operation_parser)
+        input_groups = operation_input_groups_func(sub_parser)
         if not input_groups:
             raise RuntimeError(
                 "No input groups were returned by the input group function: {}".format(
@@ -40,20 +44,24 @@ def functions_cli(
                 )
             )
 
-        if len(input_groups) == 2:
+        if len(input_groups) == 3:
+            provider_groups = input_groups[0]
             argument_groups = input_groups[1]
             skip_groups = input_groups[2]
+        elif len(input_groups) == 2:
+            provider_groups = input_groups[0]
+            argument_groups = input_groups[1]
         else:
             # Only a single datatype was returned
             # and therefore should no longer be a tuple
-            argument_groups = input_groups
+            provider_groups = input_groups
 
         sub_parser.set_defaults(
             func=cli_exec,
             module_path="libvirt_provider.instance",
             module_name="instance",
             func_name=action,
-            provider_groups=[DRIVER],
+            provider_groups=provider_groups,
             argument_groups=argument_groups,
             skip_groups=skip_groups,
         )

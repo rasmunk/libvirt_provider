@@ -1,3 +1,4 @@
+import asyncio
 from libvirt_provider.client import new_client
 from libvirt_provider.defaults import LIBVIRT
 
@@ -21,6 +22,13 @@ def get_argument_args(arguments, groups=None):
     for group in groups:
         if group in arguments:
             args.append(getattr(arguments, group))
+    return args
+
+
+def get_positional_args(arguments):
+    args = []
+    for arg in arguments:
+        args.append(getattr(arguments, arg))
     return args
 
 
@@ -58,5 +66,7 @@ def cli_exec(args):
     provider_kwargs = get_argument_kwargs(args, groups=provider_groups)
     action_kwargs = get_argument_kwargs(args, groups=argument_groups)
 
+    positional_args = get_positional_args(args)
+
     client = new_client(LIBVIRT, *provider_args, **provider_kwargs)
-    return func(client, action_kwargs)
+    return asyncio.run(func(client, action_kwargs))
