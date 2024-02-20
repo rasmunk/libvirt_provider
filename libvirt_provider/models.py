@@ -81,11 +81,15 @@ class LibvirtDriver:
             return False
         return False
 
-    def create(self, name, template_path=None, **kwargs):
+    def create(self, name, disk_image_path, template_path=None, **kwargs):
         if not template_path:
-            created_id = self._create(name=name, **kwargs)
+            created_id = self._create(
+                name=name, disk_image_path=disk_image_path, **kwargs
+            )
         else:
-            created_id = self._create_from_template(name, template_path, **kwargs)
+            created_id = self._create_from_template(
+                name, template_path, disk_image_path=disk_image_path, **kwargs
+            )
         if not created_id:
             return False
         return self.get(created_id)

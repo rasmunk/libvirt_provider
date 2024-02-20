@@ -1,15 +1,18 @@
 PACKAGE_NAME = "libvirt_provider"
 
-PROVIDER = "PROVIDER"
-
+PROVIDER = "provider"
 # Profile group defaults
-PROFILE = "PROFILE"
-DRIVER = "DRIVER"
+PROFILE = "profile"
+DRIVER = "driver"
 PROFILE_DRIVER = "{}_{}".format(PROFILE, DRIVER)
 LIBVIRT = "libvirt"
 DUMMY = "dummy"
+INSTANCE = "instance"
 
-INSTANCE = "INSTANCE"
+INSTANCE_OPERATIONS = ["create", "remove"]
+INSTANCE_CLI = {INSTANCE: INSTANCE_OPERATIONS}
+
+LIBVIRT_CLI_STRUCTURE = [INSTANCE_CLI]
 
 default_driver_config = {
     "uri": "test:///default",

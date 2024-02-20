@@ -3,18 +3,34 @@ from libvirt_provider.client import new_client
 from libvirt_provider.defaults import LIBVIRT
 
 
-def get_argument_kwargs(arguments, groups=None):
-    if not groups:
-        groups = []
-
-    argument_kwargs = {}
-    for group in groups:
-        if group in arguments:
-            argument_kwargs[group] = getattr(arguments, group)
-    return argument_kwargs
+def strip_argument_prefix(arguments, prefix=""):
+    return {k.replace(prefix, ""): v for k, v in arguments.items()}
 
 
-def get_argument_args(arguments, groups=None):
+def get_arguments(arguments, startswith=""):
+    return {k: v for k, v in arguments.items() if k.startswith(startswith)}
+
+
+def extract_arguments(arguments, argument_groups):
+    found_kwargs, remaining_kwargs = {}, {}
+    for argument_group in argument_groups:
+        group_args = get_arguments(arguments, argument_group.lower())
+        found_kwargs.update(group_args)
+    remaining_kwargs = {k: v for k, v in arguments.items() if k not in found_kwargs}
+    return found_kwargs, remaining_kwargs
+
+
+def strip_argument_group_prefix(arguments, argument_groups):
+    args = {}
+    for argument_group in argument_groups:
+        group_arguments = get_arguments(arguments, argument_group.lower())
+        args.update(
+            strip_argument_prefix(group_arguments, argument_group.lower() + "_")
+        )
+    return args
+
+
+def get_argument_groups(arguments, groups=None):
     if not groups:
         groups = []
 
@@ -25,48 +41,41 @@ def get_argument_args(arguments, groups=None):
     return args
 
 
-def get_positional_args(arguments):
-    args = []
-    for arg in arguments:
-        args.append(getattr(arguments, arg))
-    return args
-
-
 def import_from_module(module_path, module_name, func_name):
     module = __import__(module_path, fromlist=[module_name])
     return getattr(module, func_name)
 
 
-def cli_exec(args):
-    # action determines which function to execute
-    module_path = args.module_path
-    module_name = args.module_name
-    func_name = args.func_name
-    if hasattr(args, "provider_groups"):
-        provider_groups = args.provider_groups
+def cli_exec(arguments):
+    # Actions determines which function to execute
+    module_path = arguments.pop("module_path")
+    module_name = arguments.pop("module_name")
+    func_name = arguments.pop("func_name")
+    if "provider_groups" in arguments:
+        provider_groups = arguments.pop("provider_groups")
     else:
         provider_groups = []
 
-    if hasattr(args, "argument_groups"):
-        argument_groups = args.argument_groups
+    if "argument_groups" in arguments:
+        argument_groups = arguments.pop("argument_groups")
     else:
         argument_groups = []
-
-    if hasattr(args, "skip_groups"):
-        skip_groups = args.skip_groups
-    else:
-        skip_groups = []
 
     func = import_from_module(module_path, module_name, func_name)
     if not func:
         return False
 
-    # Extract the arguments provided
-    provider_args = get_argument_args(args, groups=provider_groups)
-    provider_kwargs = get_argument_kwargs(args, groups=provider_groups)
-    action_kwargs = get_argument_kwargs(args, groups=argument_groups)
+    ## Extract the arguments provided
+    driver_kwargs, remaining_driver_kwargs = extract_arguments(
+        arguments, provider_groups
+    )
+    driver_kwargs = strip_argument_group_prefix(driver_kwargs, provider_groups)
+    driver_provider = driver_kwargs.pop("name", LIBVIRT)
+    client = new_client(driver_provider, **driver_kwargs)
 
-    positional_args = get_positional_args(args)
-
-    client = new_client(LIBVIRT, *provider_args, **provider_kwargs)
-    return asyncio.run(func(client, action_kwargs))
+    action_kwargs, remaining_action_kwargs = extract_arguments(
+        remaining_driver_kwargs, argument_groups
+    )
+    action_kwargs = strip_argument_group_prefix(action_kwargs, argument_groups)
+    action_args = get_arguments(remaining_action_kwargs)
+    return asyncio.run(func(client, *action_args, **action_kwargs))

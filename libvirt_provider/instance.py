@@ -2,8 +2,8 @@ async def get(client, instance_id):
     return client.get(instance_id)
 
 
-async def create(client, instance_options):
-    return client.create(**instance_options)
+async def create(client, *instance_args, **instance_options):
+    return client.create(*instance_args, **instance_options)
 
 
 async def start(client, instance_id):

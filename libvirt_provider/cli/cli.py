@@ -2,9 +2,9 @@ import argparse
 import datetime
 import json
 from libvirt_provider.utils.format import eprint
-from libvirt_provider.defaults import PACKAGE_NAME, DRIVER
+from libvirt_provider.defaults import PACKAGE_NAME, LIBVIRT_CLI_STRUCTURE
+from libvirt_provider.cli.input_groups.driver import add_driver_group
 from libvirt_provider.cli.helpers import cli_exec, import_from_module
-from libvirt_provider.cli.parsers.driver import driver_group
 
 
 def to_str(o):
@@ -12,72 +12,111 @@ def to_str(o):
         return o.__str__()
 
 
-def driver_cli(parser):
-    driver_group(parser)
-
-
-def functions_cli(
+def recursive_add_libvirt_operations(
+    libvirt_cli_type,
+    libvirt_cli_operations,
     parser,
-    module_cli_prefix="{}.cli.input_groups".format(PACKAGE_NAME),
+    module_core_prefix="libvirt_provider",
+    module_cli_prefix="libvirt_provider.cli.input_groups",
 ):
-    actions = ["create", "remove", "start", "stop", "state", "get"]
-    for action in actions:
-        sub_parser = parser.add_parser(
-            action, help="{} a VM".format(action.capitalize())
-        )
+    """This functions generates the libvirt cli interfaces for each operation type."""
+    for operation in libvirt_cli_operations:
+        if isinstance(operation, list):
+            return recursive_add_libvirt_operations(libvirt_cli_type, operation, parser)
+        if isinstance(operation, dict):
+            # Note, we only expect there to be one key here
+            operation_key = list(operation.keys())[0]
+            # We postfix the module path with the
+            # operation_key, such that loading will correctly occur once
+            # we get down to an operation that is a simple string
+            module_core_prefix = module_core_prefix + ".{}".format(operation_key)
+            module_cli_prefix = module_cli_prefix + ".{}".format(operation_key)
 
-        function_name = "add_instance_group".format(action)
-        module_path = "{}.instance".format(module_cli_prefix)
-        module_name = "instance"
-        operation_input_groups_func = import_from_module(
-            module_path, module_name, function_name
-        )
+            # Note, we expect the values to be a list that
+            # contains the underlying operations
+            operation_values = operation.values()
+            operation_parser = parser.add_parser(operation_key)
 
-        provider_groups = []
-        argument_groups = []
-        skip_groups = []
-        input_groups = operation_input_groups_func(sub_parser)
-        if not input_groups:
-            raise RuntimeError(
-                "No input groups were returned by the input group function: {}".format(
-                    operation_input_groups_func.func_name
-                )
+            return recursive_add_libvirt_operations(
+                libvirt_cli_type, operation_values, parser
+            )
+        # Dynamically import the different cli input groups
+        if isinstance(operation, str):
+            operation_parser = parser.add_parser(operation)
+            operation_input_groups_func = import_from_module(
+                "{}.{}".format(module_cli_prefix, libvirt_cli_type),
+                "{}".format(libvirt_cli_type),
+                "{}_groups".format(operation),
             )
 
-        if len(input_groups) == 3:
-            provider_groups = input_groups[0]
-            argument_groups = input_groups[1]
-            skip_groups = input_groups[2]
-        elif len(input_groups) == 2:
-            provider_groups = input_groups[0]
-            argument_groups = input_groups[1]
-        else:
-            # Only a single datatype was returned
-            # and therefore should no longer be a tuple
-            provider_groups = input_groups
+            provider_groups = []
+            argument_groups = []
+            input_groups = operation_input_groups_func(operation_parser)
+            if not input_groups:
+                raise RuntimeError(
+                    "No input groups were returned by the input group function: {}".format(
+                        operation_input_groups_func.func_name
+                    )
+                )
 
-        sub_parser.set_defaults(
-            func=cli_exec,
-            module_path="libvirt_provider.instance",
-            module_name="instance",
-            func_name=action,
-            provider_groups=provider_groups,
-            argument_groups=argument_groups,
-            skip_groups=skip_groups,
-        )
+            if len(input_groups) == 2:
+                provider_groups = input_groups[0]
+                argument_groups = input_groups[1]
+            else:
+                # Only a single datatype was returned
+                # and therefore should no longer be a tuple
+                provider_groups = input_groups
+
+            operation_parser.set_defaults(
+                func=cli_exec,
+                module_path="{}.{}.{}".format(
+                    module_core_prefix, libvirt_cli_type, operation
+                ),
+                module_name="{}".format(libvirt_cli_type),
+                func_name=operation,
+                provider_groups=provider_groups,
+                argument_groups=argument_groups,
+            )
+
+
+def driver_cli(parser):
+    add_driver_group(parser)
+
+
+def functions_cli(commands):
+    for libvirt_cli_structure in LIBVIRT_CLI_STRUCTURE:
+        for libvirt_cli_type, libvirt_cli_operations in libvirt_cli_structure.items():
+            function_provider = commands.add_parser(libvirt_cli_type)
+            function_parser = function_provider.add_subparsers(title="COMMAND")
+            recursive_add_libvirt_operations(
+                libvirt_cli_type, libvirt_cli_operations, function_parser
+            )
 
 
 def run():
     parser = argparse.ArgumentParser(prog=PACKAGE_NAME)
-    driver_cli(parser)
     commands = parser.add_subparsers(title="COMMAND")
-    # Add corc functions to the CLI
-    functions_cli(commands)
-    args = parser.parse_args()
 
+    driver_cli(parser)
+    # Add libvirt functions to the CLI
+    functions_cli(commands)
+    arguments = [
+        "--driver-name",
+        "libvirt",
+        "--driver-uri",
+        "qemu:///session",
+        "instance",
+        "create",
+        "libvirt-name",
+        "path",
+    ]
+    args = parser.parse_args(arguments)
+    # Convert to a dictionary
+    arguments = vars(args)
     # Execute default function
-    if hasattr(args, "func"):
-        success, response = args.func(args)
+    if "func" in arguments:
+        func = arguments.pop("func")
+        success, response = func(arguments)
         output = ""
         if success:
             response["status"] = "success"
@@ -96,4 +135,4 @@ def run():
 
 
 if __name__ == "__main__":
-    arguments = run()
+    run()

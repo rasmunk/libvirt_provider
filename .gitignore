@@ -133,3 +133,5 @@ dmypy.json
 
 # ignore test images
 tests/images
+
+!libvirt_provider/instance
