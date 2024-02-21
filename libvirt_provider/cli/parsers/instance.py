@@ -17,4 +17,4 @@ def create_group(parser):
 
 def remove_group(parser):
     instance_group = parser.add_argument_group(title="Instance remove arguments")
-    instance_group.add_argument("name")
+    instance_group.add_argument("id")
