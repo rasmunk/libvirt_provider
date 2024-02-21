@@ -51,6 +51,12 @@ def cli_exec(arguments):
     module_path = arguments.pop("module_path")
     module_name = arguments.pop("module_name")
     func_name = arguments.pop("func_name")
+
+    if "positional_arguments" in arguments:
+        positional_arguments = arguments.pop("positional_arguments")
+    else:
+        positional_arguments = []
+
     if "provider_groups" in arguments:
         provider_groups = arguments.pop("provider_groups")
     else:
@@ -77,5 +83,7 @@ def cli_exec(arguments):
         remaining_driver_kwargs, argument_groups
     )
     action_kwargs = strip_argument_group_prefix(action_kwargs, argument_groups)
-    action_args = get_arguments(remaining_action_kwargs)
+    if remaining_action_kwargs:
+        print("Unused arguments: {}".format(remaining_action_kwargs))
+    action_args = positional_arguments
     return asyncio.run(func(client, *action_args, **action_kwargs))
