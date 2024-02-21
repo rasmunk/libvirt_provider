@@ -5,7 +5,11 @@ from libvirt_provider.utils.io import join, makedirs, exists, load_json
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.models import Node
 from libvirt_provider.client import new_client
-from libvirt_provider.instance import create, remove, stop, get, state
+from libvirt_provider.instance.create import create
+from libvirt_provider.instance.remove import remove
+from libvirt_provider.instance.stop import stop
+from libvirt_provider.instance.get import get
+from libvirt_provider.instance.state import state
 from deling.io.datastores.core import SFTPStore
 from deling.authenticators.ssh import SSHAuthenticator
 
@@ -91,7 +95,7 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
             **loaded_node_options,
         }
 
-        node = await create(self.client, node_options)
+        node = await create(self.client, **node_options)
         self.assertIsNotNone(node)
         self.assertIsInstance(node, Node)
         self.assertTrue(await remove(self.client, node.id))
@@ -113,7 +117,7 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
             **loaded_node_options,
         }
 
-        new_node = await create(self.client, node_options)
+        new_node = await create(self.client, **node_options)
         self.assertIsNotNone(new_node)
         self.assertIsInstance(new_node, Node)
 

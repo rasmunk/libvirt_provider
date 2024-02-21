@@ -100,17 +100,7 @@ def run():
     driver_cli(parser)
     # Add libvirt functions to the CLI
     functions_cli(commands)
-    arguments = [
-        "--driver-name",
-        "libvirt",
-        "--driver-uri",
-        "qemu:///session",
-        "instance",
-        "create",
-        "libvirt-name",
-        "path",
-    ]
-    args = parser.parse_args(arguments)
+    args = parser.parse_args()
     # Convert to a dictionary
     arguments = vars(args)
     # Execute default function

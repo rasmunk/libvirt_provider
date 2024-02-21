@@ -11,7 +11,7 @@ def create_group(parser):
     instance_group.add_argument("name", action=PositionalArgumentsAction)
     instance_group.add_argument("disk_image_path", action=PositionalArgumentsAction)
     instance_group.add_argument(
-        "-ms", "--memory-size", dest="{}_memory_size".format(INSTANCE)
+        "-ms", "--memory-size", dest="{}_memory_size".format(INSTANCE), default="1024"
     )
 
 

@@ -16,7 +16,9 @@ def extract_arguments(arguments, argument_groups):
     for argument_group in argument_groups:
         group_args = get_arguments(arguments, argument_group.lower())
         found_kwargs.update(group_args)
-    remaining_kwargs = {k: v for k, v in arguments.items() if k not in found_kwargs}
+    remaining_kwargs = {
+        k: v for k, v in arguments.items() if k not in found_kwargs and v
+    }
     return found_kwargs, remaining_kwargs
 
 

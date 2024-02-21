@@ -7,7 +7,8 @@ from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.client import new_client
 from libvirt_provider.pool import Pool
 from libvirt_provider.models import Node
-from libvirt_provider.instance import create, remove
+from libvirt_provider.instance.create import create
+from libvirt_provider.instance.remove import remove
 
 
 class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
@@ -78,7 +79,7 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
                 **loaded_node_options,
             }
 
-            node = await create(self.client, node_options)
+            node = await create(self.client, **node_options)
             self.assertIsInstance(node, Node)
             self.assertEqual(node.name, node_options["name"])
             self.assertTrue(await pool.add(node))

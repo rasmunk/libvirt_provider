@@ -3,7 +3,8 @@ from libvirt_provider.defaults import DUMMY
 from libvirt_provider.client import new_client
 from libvirt_provider.pool import Pool
 from libvirt_provider.models import Node
-from libvirt_provider.instance import create, remove
+from libvirt_provider.instance.create import create
+from libvirt_provider.instance.remove import remove
 
 
 class TestDummyPool(unittest.IsolatedAsyncioTestCase):
@@ -41,9 +42,9 @@ class TestDummyPool(unittest.IsolatedAsyncioTestCase):
             "size": "Large",
         }
 
-        self.assertTrue(await pool.add(await create(self.client, node_options_1)))
-        self.assertTrue(await pool.add(await create(self.client, node_options_2)))
-        self.assertTrue(await pool.add(await create(self.client, node_options_3)))
+        self.assertTrue(await pool.add(await create(self.client, **node_options_1)))
+        self.assertTrue(await pool.add(await create(self.client, **node_options_2)))
+        self.assertTrue(await pool.add(await create(self.client, **node_options_3)))
 
         nodes = sorted(await pool.items(), key=lambda node: node.name)
         self.assertEqual(len(nodes), 3)

@@ -6,7 +6,11 @@ from libvirt_provider.utils.io import copy, join, exists, makedirs, load_json
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.models import Node
 from libvirt_provider.client import new_client
-from libvirt_provider.instance import create, remove, stop, get, state
+from libvirt_provider.instance.create import create
+from libvirt_provider.instance.remove import remove
+from libvirt_provider.instance.stop import stop
+from libvirt_provider.instance.get import get
+from libvirt_provider.instance.state import state
 
 
 class TestLibvirt(unittest.IsolatedAsyncioTestCase):
@@ -58,7 +62,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
             "memory_size": "2048",
             **loaded_node_options,
         }
-        node = await create(self.client, node_options)
+        node = await create(self.client, **node_options)
         self.assertIsNotNone(node)
         self.assertIsInstance(node, Node)
         self.assertTrue(await remove(self.client, node.id))
@@ -80,7 +84,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
             **loaded_node_options,
         }
 
-        new_node = await create(self.client, node_options)
+        new_node = await create(self.client, **node_options)
         self.assertIsNotNone(new_node)
         self.assertIsInstance(new_node, Node)
 
@@ -107,7 +111,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
             "disk_image_path": test_image,
             "template_path": join("tests", "res", "templates", "libvirt.xml"),
         }
-        node = await create(self.client, node_options)
+        node = await create(self.client, **node_options)
         self.assertIsNotNone(node)
         self.assertIsInstance(node, Node)
         self.assertTrue(await remove(self.client, node.id))
@@ -134,7 +138,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
             "serial_type_target_port": 0,
             "console_type": "pty",
         }
-        node = await create(self.client, node_options)
+        node = await create(self.client, **node_options)
         self.assertIsNotNone(node)
         self.assertIsInstance(node, Node)
         self.assertTrue(await remove(self.client, node.id))

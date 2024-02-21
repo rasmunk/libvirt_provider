@@ -1,5 +1,6 @@
 import unittest
-from libvirt_provider.instance import create, remove
+from libvirt_provider.instance.create import create
+from libvirt_provider.instance.remove import remove
 from libvirt_provider.defaults import DUMMY
 from libvirt_provider.client import new_client
 from libvirt_provider.models import Node
@@ -46,9 +47,9 @@ class TestDummy(unittest.IsolatedAsyncioTestCase):
             "size": "Large",
         }
 
-        node1 = await create(self.client, node_options_1)
-        node2 = await create(self.client, node_options_2)
-        node3 = await create(self.client, node_options_3)
+        node1 = await create(self.client, **node_options_1)
+        node2 = await create(self.client, **node_options_2)
+        node3 = await create(self.client, **node_options_3)
 
         self.assertEqual(node1.name, node_options_1["name"])
         self.assertEqual(node1.config["image"], node_options_1["image"])
