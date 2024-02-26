@@ -8,8 +8,3 @@ def driver_group(parser):
     driver_group.add_argument("--driver-uri", default="qemu:///session")
     driver_group.add_argument("--driver-key", default=None)
     driver_group.add_argument("--driver-secret", default=None)
-
-    # HACK to extract the set provider from the cli
-
-
-#    driver_group.add_argument("--driver", action="store_true", default=True)
