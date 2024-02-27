@@ -86,6 +86,12 @@ def create_group(parser):
         default="pty",
         help="The console type",
     )
+    instance_group.add_argument(
+        "-tp",
+        "--template-path",
+        dest="{}_template_path".format(INSTANCE),
+        help="The path to the XML template that should be used to create the instance.",
+    )
 
 
 def remove_group(parser):
