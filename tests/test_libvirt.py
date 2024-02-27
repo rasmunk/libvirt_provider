@@ -125,7 +125,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
             "name": name,
             "template_path": join("tests", "res", "templates", "libvirt.j2"),
             "domain_type": "kvm",
-            "disk_type": "file",
+            "disk_device_type": "file",
             "disk_driver_type": "qcow2",
             "disk_image_path": test_image,
             "disk_target_dev": "hda",

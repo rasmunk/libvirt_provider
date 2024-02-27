@@ -24,9 +24,9 @@ def create_group(parser):
         help="The domain type",
     )
     instance_group.add_argument(
-        "-dt",
-        "--disk-type",
-        dest="{}_disk_type".format(INSTANCE),
+        "-ddtype",
+        "--disk-device-type",
+        dest="{}_disk_device_type".format(INSTANCE),
         default="file",
         help="The disk type",
     )
