@@ -9,7 +9,7 @@ LIBVIRT = "libvirt"
 DUMMY = "dummy"
 INSTANCE = "instance"
 
-INSTANCE_OPERATIONS = ["create", "remove"]
+INSTANCE_OPERATIONS = ["create", "remove", "list"]
 INSTANCE_CLI = {INSTANCE: INSTANCE_OPERATIONS}
 
 LIBVIRT_CLI_STRUCTURE = [INSTANCE_CLI]
