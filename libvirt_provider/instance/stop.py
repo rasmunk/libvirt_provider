@@ -1,2 +1,2 @@
-async def stop(client, instance_id):
-    return client.stop(instance_id)
+async def stop(client, id):
+    return client.stop(id)

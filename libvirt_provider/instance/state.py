@@ -1,2 +1,2 @@
-async def state(client, instance_id):
-    return client.state(instance_id)
+async def state(client, id):
+    return client.state(id)

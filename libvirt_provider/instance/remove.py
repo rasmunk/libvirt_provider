@@ -1,2 +1,2 @@
-async def remove(client, instance_id):
-    return client.remove(instance_id)
+async def remove(client, id):
+    return client.remove(id)

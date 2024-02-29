@@ -1,2 +1,2 @@
-async def get(client, instance_id):
-    return client.get(instance_id)
+async def get(client, id):
+    return client.get(id)
