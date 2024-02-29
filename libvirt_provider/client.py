@@ -1,10 +1,12 @@
-from libvirt_provider.defaults import LIBVIRT, DUMMY
-from libvirt_provider.models import DummyDriver, LibvirtDriver
+from libvirt_provider.defaults import LIBVIRT, CONTAINER, DUMMY
+from libvirt_provider.models import DummyDriver, LibvirtDriver, LXCDriver
 
 
 def discover_provider_client(provider):
     if provider == LIBVIRT:
         return LibvirtDriver
+    if provider == CONTAINER:
+        return LXCDriver
     elif provider == DUMMY:
         return DummyDriver
     else:
