@@ -235,8 +235,53 @@ class LXCDriver(LibvirtDriver):
             self._open_uri = open_uri
         super().__init__(*args, open_uri=open_uri, **kwargs)
 
-    def create(self, name, **kwargs):
-        raise NotImplementedError
+    def _create(
+        self,
+        domain_type="lcx",
+        name=None,
+        memory_size="1024",
+        num_vcpus=1,
+        on_poweroff="destroy",
+        on_reboot="restart",
+        on_crash="destroy",
+        emulator="/usr/libexec/libvirt_lxc",
+        console_type="pty",
+    ):
+        xml_desc = f"""
+        <domain type='{domain_type}'>
+            <name>{name}</name>
+            <memory>{memory_size}</memory>
+            <os>
+                <type>exe</type>
+                <init>/bin/sh</init>
+            </os>
+            <vcpu>{num_vcpus}</vcpu>
+            <clock offset='utc'/>
+            <on_poweroff>{on_poweroff}</on_poweroff>
+            <on_reboot>{on_reboot}</on_reboot>
+            <on_crash>{on_crash}</on_crash>
+            <devices>
+                <emulator>{emulator}</emulator>
+                <interface type='network'>
+                    <source network='default'/>
+                </interface>
+                <console type='{console_type}' />
+            </devices>
+        </domain>
+        """
+        domain = self._conn.createXML(xml_desc)
+        if not domain:
+            return None
+        return domain.UUIDString()
+
+    def create(self, name, template_path=None, **kwargs):
+        if not template_path:
+            created_id = self._create(name=name, **kwargs)
+        else:
+            created_id = self._create_from_template(name, template_path, **kwargs)
+        if not created_id:
+            return False
+        return self.get(created_id)
 
     def get(self, container_id):
         raise NotImplementedError
