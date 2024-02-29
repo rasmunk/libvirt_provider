@@ -225,3 +225,30 @@ class LibvirtDriver:
         if not domains:
             return []
         return [self.get(domain.UUIDString()) for domain in domains]
+
+
+class LXCDriver(LibvirtDriver):
+    def __init__(self, *args, open_uri=None, **kwargs):
+        if not open_uri:
+            self._open_uri = "lxc:///system"
+        else:
+            self._open_uri = open_uri
+        super().__init__(*args, open_uri=open_uri, **kwargs)
+
+    def create(self, name, **kwargs):
+        raise NotImplementedError
+
+    def get(self, container_id):
+        raise NotImplementedError
+
+    def start(self, container):
+        raise NotImplementedError
+
+    def stop(self, container):
+        raise NotImplementedError
+
+    def remove(self, container):
+        raise NotImplementedError
+
+    def list(self):
+        raise NotImplementedError

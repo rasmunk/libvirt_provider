@@ -8,11 +8,15 @@ PROFILE_DRIVER = "{}_{}".format(PROFILE, DRIVER)
 LIBVIRT = "libvirt"
 DUMMY = "dummy"
 INSTANCE = "instance"
+CONTAINER = "container"
 
 INSTANCE_OPERATIONS = ["create", "remove", "list"]
 INSTANCE_CLI = {INSTANCE: INSTANCE_OPERATIONS}
 
-LIBVIRT_CLI_STRUCTURE = [INSTANCE_CLI]
+CONTAINER_OPERATIONS = ["create", "remove", "list"]
+CONTAINER_CLI = {CONTAINER: CONTAINER_OPERATIONS}
+
+LIBVIRT_CLI_STRUCTURE = [INSTANCE_CLI, CONTAINER_CLI]
 
 default_driver_config = {
     "uri": "test:///default",
