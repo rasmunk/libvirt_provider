@@ -34,6 +34,9 @@ class DummyDriver:
     def remove(self, node):
         return True
 
+    def list(self):
+        return [Node(str(uuid.uuid4()), "dummy-node-{}".format(i)) for i in range(4)]
+
 
 def auth_callback(creds, callback_data):
     print("Hello from auth")
@@ -216,3 +219,9 @@ class LibvirtDriver:
             print("Failed to destroy domain: {} - {}".format(node_id, err))
             return False
         return True
+
+    def list(self):
+        domains = self._conn.listAllDomains()
+        if not domains:
+            return []
+        return [self.get(domain.UUIDString()) for domain in domains]

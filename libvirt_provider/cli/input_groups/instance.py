@@ -1,5 +1,5 @@
 from libvirt_provider.defaults import DRIVER, INSTANCE
-from libvirt_provider.cli.parsers.instance import create_group, remove_group
+from libvirt_provider.cli.parsers.instance import create_group, remove_group, list_group
 
 
 def create_groups(parser):
@@ -12,6 +12,14 @@ def create_groups(parser):
 
 def remove_groups(parser):
     remove_group(parser)
+
+    provider_groups = [DRIVER]
+    argument_groups = [INSTANCE]
+    return provider_groups, argument_groups
+
+
+def list_groups(parser):
+    list_group(parser)
 
     provider_groups = [DRIVER]
     argument_groups = [INSTANCE]

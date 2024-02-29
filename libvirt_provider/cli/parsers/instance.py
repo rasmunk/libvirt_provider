@@ -6,6 +6,14 @@ def valid_create_group(parser):
     create_group(parser)
 
 
+def valid_remove_group(parser):
+    remove_group(parser)
+
+
+def valid_list_group(parser):
+    list_group(parser)
+
+
 def create_group(parser):
     instance_group = parser.add_argument_group(title="Instance create arguments")
     instance_group.add_argument(
@@ -97,3 +105,7 @@ def create_group(parser):
 def remove_group(parser):
     instance_group = parser.add_argument_group(title="Instance remove arguments")
     instance_group.add_argument("id", help="The id of the instance to be removed")
+
+
+def list_group(parser):
+    _ = parser.add_argument_group(title="Instance list arguments")

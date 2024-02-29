@@ -10,6 +10,7 @@ from libvirt_provider.instance.create import create
 from libvirt_provider.instance.remove import remove
 from libvirt_provider.instance.stop import stop
 from libvirt_provider.instance.get import get
+from libvirt_provider.instance.list import list
 from libvirt_provider.instance.state import state
 
 
@@ -142,6 +143,52 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(node)
         self.assertIsInstance(node, Node)
         self.assertTrue(await remove(self.client, node.id))
+
+    async def test_list_nodes(self):
+        nodes = await self.client.list()
+        self.assertIsNotNone(nodes)
+        self.assertIsInstance(nodes, list)
+        self.assertTrue(len(nodes) == 0)
+
+        test_image = os.path.abspath(
+            join(self.images_dir, f"{self.name}-Rocky-9-0.qcow2")
+        )
+        node_options_1 = {
+            "name": "test-5",
+            "disk_image_path": test_image,
+            "memory_size": "2048",
+        }
+        node1 = await create(self.client, **node_options_1)
+        self.assertIsNotNone(node1)
+        self.assertIsInstance(node1, Node)
+
+        nodes1 = await self.client.list()
+        self.assertIsNotNone(nodes1)
+        self.assertIsInstance(nodes1, list)
+        self.assertTrue(len(nodes1) == 1)
+        self.assertEqual(nodes1[0].id, node1.id)
+
+        node_options_2 = {
+            "name": "test-6",
+            "disk_image_path": test_image,
+            "memory_size": "2048",
+        }
+        node2 = await create(self.client, **node_options_2)
+        self.assertIsNotNone(node2)
+        self.assertIsInstance(node2, Node)
+
+        nodes2 = await list(self.client, **node_options_2)
+        self.assertIsNotNone(nodes2)
+        self.assertIsInstance(nodes2, Node)
+        self.assertTrue(len(nodes2) == 2)
+
+        for node in nodes2:
+            self.assertTrue(await remove(self.client, node.id))
+
+        nodes = await self.client.list()
+        self.assertIsNotNone(nodes)
+        self.assertIsInstance(nodes, list)
+        self.assertTrue(len(nodes) == 0)
 
 
 if __name__ == "__main__":
