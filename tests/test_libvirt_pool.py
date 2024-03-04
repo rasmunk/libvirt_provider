@@ -2,7 +2,16 @@ import unittest
 import os
 import wget
 from libvirt_provider.utils.io import remove as remove_file
-from libvirt_provider.utils.io import copy, exists, join, makedirs, load_json
+from libvirt_provider.utils.io import (
+    copy,
+    exists,
+    join,
+    makedirs,
+    load_json,
+    chown,
+    chmod,
+)
+from libvirt_provider.utils.user import lookup_uid, lookup_gid
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.client import new_client
 from libvirt_provider.pool import Pool
@@ -13,9 +22,13 @@ from libvirt_provider.instance.remove import remove
 
 class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
+        self.user = "qemu"
         self.architecture = "x86_64"
         self.name = f"libvirt-pool-{self.architecture}"
-        self.images_dir = join("tests", "images", self.architecture)
+        self.images_dir = join(
+            os.sep, "var", "lib", "libvirt", "images", self.architecture
+        )
+        # self.images_dir = join("tests", "images", self.architecture)
         if not exists(self.images_dir):
             self.assertTrue(makedirs(self.images_dir))
 
@@ -31,13 +44,17 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(True)
         self.assertTrue(exists(self.image))
 
-        for i in range(2):
-            test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
-            self.assertTrue(copy(self.image, test_image))
-            self.assertTrue(exists(test_image))
-
+        qemu_uid, qemu_gid = lookup_uid(self.user), lookup_gid(self.user)
         open_uri = "qemu:///session"
         self.client = new_client(LIBVIRT, open_uri=open_uri)
+        for i in range(2):
+            test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
+            if not exists(test_image):
+                self.assertTrue(copy(self.image, test_image))
+            self.assertTrue(exists(test_image))
+            # Ensure correct ownership on image file
+            self.assertTrue(chown(test_image, qemu_uid, qemu_gid))
+            self.assertTrue(chmod(test_image, 0o755))
 
     async def asyncTearDown(self):
         # Ensure that any pool is destroyed
@@ -85,7 +102,7 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(create_success)
             self.assertIn("instance", create_response)
             self.assertIsNotNone(create_response["instance"])
-            node = create_success["instance"]
+            node = create_response["instance"]
 
             self.assertIsInstance(node, Node)
             self.assertEqual(node.name, node_options["name"])

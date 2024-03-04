@@ -221,7 +221,7 @@ class LibvirtDriver:
 
     def list(self):
         domains = self._conn.listAllDomains()
-        if not domains:
+        if domains is None or not isinstance(domains, (tuple, set, list)):
             return False
         return [self.get(domain.UUIDString()) for domain in domains]
 

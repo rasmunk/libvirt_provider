@@ -1,12 +1,11 @@
-<domain type='kvm'>
-    <name>kvm-test-1</name>
+<domain type='qemu'>
+    <name>qemu-test-1</name>
     <memory>1024</memory>
     <vcpu>1</vcpu>
     <os>
         <type arch='x86_64' machine='pc'>hvm</type>
     </os>
     <devices>
-        <emulator>/usr/bin/qemu-system-x86_64</emulator>
         <disk type='file' device='disk'>
             <driver name='qemu' type='qcow2'/>
             <source file='{disk_image_path}'/>

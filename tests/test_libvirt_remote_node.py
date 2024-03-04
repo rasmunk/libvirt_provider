@@ -16,6 +16,7 @@ from deling.authenticators.ssh import SSHAuthenticator
 
 class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
+        self.libvirt_user = "qemu"
         self.architecture = "x86_64"
         self.name = f"libvirt-remote-{self.architecture}"
         self.images_dir = join("tests", "images", self.architecture)
@@ -63,11 +64,15 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
         if not self.datastore.exists(self.image):
             self.assertTrue(self.datastore.upload(self.image, self.image))
 
+        # TODO, lookup the remote node uid/gid for the self.libvirt_user
+        # qemu_uid, qemu_gid = lookup_uid(self.libvirt_user), lookup_gid(self.libvirt_user)
         for i in range(2):
             test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
             if not self.datastore.exists(test_image):
                 self.assertTrue(self.datastore.copy(self.image, test_image))
+            # TODO, set the remote uid/gid via the fstat call on the datastore
 
+        open_uri = "qemu:///session"
         remote_uri = f"qemu+ssh://{username}@{hostname}/session"
         self.client = new_client(LIBVIRT, open_uri=remote_uri)
 

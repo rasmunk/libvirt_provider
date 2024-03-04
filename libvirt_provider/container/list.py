@@ -1,4 +1,4 @@
-async def list(client):
+async def list_containers(client):
     response = {}
     containers = client.list()
     if not containers:

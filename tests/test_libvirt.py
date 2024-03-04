@@ -19,7 +19,7 @@ from libvirt_provider.instance.create import create
 from libvirt_provider.instance.remove import remove
 from libvirt_provider.instance.stop import stop
 from libvirt_provider.instance.get import get
-from libvirt_provider.instance.list import list as list_instances
+from libvirt_provider.instance.list import list_instances
 from libvirt_provider.instance.state import state
 
 
@@ -28,7 +28,10 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         self.user = "qemu"
         self.architecture = "x86_64"
         self.name = f"libvirt-{self.architecture}"
-        self.images_dir = join("tests", "images", self.architecture)
+        self.images_dir = join(
+            os.sep, "var", "lib", "libvirt", "images", self.architecture
+        )
+        # self.images_dir = join("tests", "images", self.architecture)
         if not exists(self.images_dir):
             self.assertTrue(makedirs(self.images_dir))
 
@@ -47,17 +50,17 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         qemu_uid, qemu_gid = lookup_uid(self.user), lookup_gid(self.user)
         open_uri = "qemu:///session"
         self.client = new_client(LIBVIRT, open_uri=open_uri)
-        for i in range(4):
+        for i in range(6):
             test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
             if not exists(test_image):
                 self.assertTrue(copy(self.image, test_image))
             self.assertTrue(exists(test_image))
             # Ensure correct ownership on image file
             self.assertTrue(chown(test_image, qemu_uid, qemu_gid))
-            self.assertTrue(chmod(test_image, 0o777))
+            self.assertTrue(chmod(test_image, 0o755))
 
     async def asyncTearDown(self):
-        for i in range(4):
+        for i in range(6):
             test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
             self.assertTrue(remove_file(test_image))
             self.assertFalse(exists(test_image))
@@ -170,7 +173,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         node_options = {
             "name": name,
             "template_path": join("tests", "res", "templates", "libvirt.j2"),
-            "domain_type": "kvm",
+            "domain_type": "qemu",
             "disk_device_type": "file",
             "disk_driver_type": "qcow2",
             "disk_image_path": test_image,
@@ -206,12 +209,12 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(nodes, list)
         self.assertTrue(len(nodes) == 0)
 
-        test_image = os.path.abspath(
-            join(self.images_dir, f"{self.name}-Rocky-9-0.qcow2")
+        test_image_1 = os.path.abspath(
+            join(self.images_dir, f"{self.name}-Rocky-9-4.qcow2")
         )
         node_options_1 = {
             "name": "test-5",
-            "disk_image_path": test_image,
+            "disk_image_path": test_image_1,
             "memory_size": "2048",
         }
         create_success1, create_response1 = await create(self.client, **node_options_1)
@@ -232,9 +235,13 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(len(nodes1) == 1)
         self.assertEqual(nodes1[0].id, node1.id)
 
+        test_image_2 = os.path.abspath(
+            join(self.images_dir, f"{self.name}-Rocky-9-5.qcow2")
+        )
+
         node_options_2 = {
             "name": "test-6",
-            "disk_image_path": test_image,
+            "disk_image_path": test_image_2,
             "memory_size": "2048",
         }
         create_success2, create_response2 = await create(self.client, **node_options_2)
@@ -252,7 +259,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         nodes2 = list_response2["instances"]
 
         self.assertIsNotNone(nodes2)
-        self.assertIsInstance(nodes2, Node)
+        self.assertIsInstance(nodes2, list)
         self.assertTrue(len(nodes2) == 2)
 
         for node in nodes2:

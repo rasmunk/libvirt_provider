@@ -7,7 +7,6 @@
     <type>hvm</type>
   </os>
   <devices>
-    <emulator>/usr/bin/qemu-system-{{cpu_architecture}}</emulator>
     <disk type='{{disk_device_type}}' device='disk'>
       <driver name='qemu' type='{{disk_driver_type}}'/>
       <source file='{{disk_image_path}}'/>
