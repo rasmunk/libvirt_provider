@@ -223,7 +223,7 @@ class LibvirtDriver:
     def list(self):
         domains = self._conn.listAllDomains()
         if not domains:
-            return []
+            return False
         return [self.get(domain.UUIDString()) for domain in domains]
 
 
