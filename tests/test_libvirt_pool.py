@@ -43,7 +43,9 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
         # Ensure that any pool is destroyed
         pool = Pool(self.name)
         for node in await pool.items():
-            self.assertTrue(await remove(self.client, node.id))
+            removed, response = await remove(self.client, node.id)
+            self.assertTrue(removed)
+
         self.assertTrue(await pool.flush())
         self.assertEqual(len(await pool.items()), 0)
         self.assertTrue(await pool.remove_persistence())
@@ -79,7 +81,12 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
                 **loaded_node_options,
             }
 
-            node = await create(self.client, **node_options)
+            create_success, create_response = await create(self.client, **node_options)
+            self.assertTrue(create_success)
+            self.assertIn("instance", create_response)
+            self.assertIsNotNone(create_response["instance"])
+            node = create_success["instance"]
+
             self.assertIsInstance(node, Node)
             self.assertEqual(node.name, node_options["name"])
             self.assertTrue(await pool.add(node))
@@ -93,4 +100,5 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
             self.assertFalse(await pool.get(node.id))
             self.assertEqual(len(await pool.items()), 0)
 
-            self.assertTrue(await remove(self.client, node.id))
+            removed, remove_response = await remove(self.client, node.id)
+            self.assertTrue(removed)

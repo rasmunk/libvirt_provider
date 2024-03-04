@@ -16,7 +16,8 @@ class TestDummyPool(unittest.IsolatedAsyncioTestCase):
         # Ensure that any pool is destroyed
         pool = Pool(self.name)
         for node in await pool.items():
-            self.assertTrue(await remove(self.client, node.id))
+            removed, response = await remove(self.client, node.id)
+            self.assertTrue(removed)
         self.assertTrue(await pool.flush())
         self.assertEqual(len(await pool.items()), 0)
         self.assertTrue(await pool.remove_persistence())
@@ -42,9 +43,17 @@ class TestDummyPool(unittest.IsolatedAsyncioTestCase):
             "size": "Large",
         }
 
-        self.assertTrue(await pool.add(await create(self.client, **node_options_1)))
-        self.assertTrue(await pool.add(await create(self.client, **node_options_2)))
-        self.assertTrue(await pool.add(await create(self.client, **node_options_3)))
+        created1, response1 = await create(self.client, **node_options_1)
+        self.assertTrue(created1)
+        self.assertTrue(await pool.add(response1["instance"]))
+
+        created2, response2 = await create(self.client, **node_options_2)
+        self.assertTrue(created2)
+        self.assertTrue(await pool.add(response2["instance"]))
+
+        created3, response3 = await create(self.client, **node_options_3)
+        self.assertTrue(created3)
+        self.assertTrue(await pool.add(response3["instance"]))
 
         nodes = sorted(await pool.items(), key=lambda node: node.name)
         self.assertEqual(len(nodes), 3)

@@ -29,7 +29,7 @@ valid_driver_config = {"uri": str, "key": str, "secret": str}
 default_config = {
     "name": "libvirt-provider",
     "type": "orchestration",
-    "dependency_packages": ["libcloud"],
+    "dependency_packages": [""],
     "driver": default_driver_config,
 }
 

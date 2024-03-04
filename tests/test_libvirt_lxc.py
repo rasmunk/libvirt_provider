@@ -1,6 +1,4 @@
 import unittest
-from libvirt_provider.container.create import create
-from libvirt_provider.container.remove import remove
 from libvirt_provider.defaults import CONTAINER
 from libvirt_provider.client import new_client
 from libvirt_provider.models import Node

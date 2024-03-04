@@ -18,6 +18,7 @@ def acquire_lock(path, mode=fcntl.LOCK_EX):
     lock = open(path, "w+")
     try:
         fcntl.flock(lock.fileno(), mode)
+        return lock
     except IOError as ioerr:
         print("Failed to acquire lock: {} - {}".format(path, ioerr))
         # Clean up
@@ -25,7 +26,7 @@ def acquire_lock(path, mode=fcntl.LOCK_EX):
             lock.close()
         except Exception as err:
             print("Failed to close lock after failling to acquire it: {}".format(err))
-    return lock
+    return None
 
 
 def release_lock(lock, close=True):
@@ -130,6 +131,15 @@ def chmod(path, mode, **kwargs):
         os.chmod(path, mode, **kwargs)
     except Exception as err:
         print("Failed to set permissions: {} on: {} - {}".format(mode, path, err))
+        return False
+    return True
+
+
+def chown(path, uid, gid):
+    try:
+        os.chown(path, uid, gid)
+    except Exception as err:
+        print("Failed to set owner: {} on: {} - {}".format(uid, path, err))
         return False
     return True
 

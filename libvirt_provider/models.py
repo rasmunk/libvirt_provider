@@ -132,7 +132,7 @@ class LibvirtDriver:
 
     def _create(
         self,
-        domain_type="kvm",
+        domain_type="qemu",
         name=None,
         disk_device_type="file",
         disk_driver_type="qcow2",
@@ -156,7 +156,6 @@ class LibvirtDriver:
             <type arch='{cpu_architecture}' machine='{machine}'>hvm</type>
           </os>
           <devices>
-            <emulator>/usr/bin/qemu-system-{cpu_architecture}</emulator>
             <disk type='{disk_device_type}' device='disk'>
               <driver name='qemu' type='{disk_driver_type}'/>
               <source file='{disk_image_path}'/>
