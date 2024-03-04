@@ -19,7 +19,7 @@ from libvirt_provider.instance.create import create
 from libvirt_provider.instance.remove import remove
 from libvirt_provider.instance.stop import stop
 from libvirt_provider.instance.get import get
-from libvirt_provider.instance.list import list_instances
+from libvirt_provider.instance.ls import ls
 from libvirt_provider.instance.state import state
 
 
@@ -28,10 +28,11 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         self.user = "qemu"
         self.architecture = "x86_64"
         self.name = f"libvirt-{self.architecture}"
-        self.images_dir = join(
-            os.sep, "var", "lib", "libvirt", "images", self.architecture
-        )
-        # self.images_dir = join("tests", "images", self.architecture)
+        # Note, a properly SELinux labelled directory is required when SELinux is enabled
+        # self.images_dir = join(
+        #    os.sep, "var", "lib", "libvirt", "images", self.architecture
+        # )
+        self.images_dir = join("tests", "images", self.architecture)
         if not exists(self.images_dir):
             self.assertTrue(makedirs(self.images_dir))
 
@@ -199,7 +200,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(removed_success)
 
     async def test_list_nodes(self):
-        list_success, list_response = await list_instances(self.client)
+        list_success, list_response = await ls(self.client)
         self.assertTrue(list_success)
         self.assertIn("instances", list_response)
         self.assertIsNotNone(list_response["instances"])
@@ -225,7 +226,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(node1)
         self.assertIsInstance(node1, Node)
 
-        list_success1, list_response1 = await list_instances(self.client)
+        list_success1, list_response1 = await ls(self.client)
         self.assertTrue(list_success1)
         self.assertIn("instances", list_response1)
         self.assertIsNotNone(list_response1["instances"])
@@ -252,7 +253,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(node2)
         self.assertIsInstance(node2, Node)
 
-        list_success2, list_response2 = await list_instances(self.client)
+        list_success2, list_response2 = await ls(self.client)
         self.assertTrue(list_response2)
         self.assertIn("instances", list_response2)
         self.assertIsNotNone(list_response2["instances"])
@@ -266,7 +267,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
             removed_success, response = await remove(self.client, node.id)
             self.assertTrue(removed_success)
 
-        list_success3, list_response3 = await list_instances(self.client)
+        list_success3, list_response3 = await ls(self.client)
         self.assertTrue(list_response3)
         self.assertIn("instances", list_response3)
         self.assertIsNotNone(list_response3["instances"])

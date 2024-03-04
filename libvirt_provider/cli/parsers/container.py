@@ -11,7 +11,7 @@ def valid_remove_group(parser):
 
 
 def valid_list_group(parser):
-    list_group(parser)
+    ls_group(parser)
 
 
 def create_group(parser):
@@ -35,5 +35,5 @@ def remove_group(parser):
     )
 
 
-def list_group(parser):
+def ls_group(parser):
     _ = parser.add_argument_group(title="Container list arguments")

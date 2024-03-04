@@ -2,7 +2,7 @@ from libvirt_provider.defaults import DRIVER, CONTAINER
 from libvirt_provider.cli.parsers.container import (
     create_group,
     remove_group,
-    list_group,
+    ls_group,
 )
 
 
@@ -22,8 +22,8 @@ def remove_groups(parser):
     return provider_groups, argument_groups
 
 
-def list_groups(parser):
-    list_group(parser)
+def ls_groups(parser):
+    ls_group(parser)
 
     provider_groups = [DRIVER]
     argument_groups = [CONTAINER]

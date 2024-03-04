@@ -1,4 +1,4 @@
-async def list_instances(client):
+async def ls(client):
     response = {}
     instances = client.list()
     if instances is None or not isinstance(instances, (list, tuple, set)):

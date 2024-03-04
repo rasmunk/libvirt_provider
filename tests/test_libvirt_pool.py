@@ -25,10 +25,11 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
         self.user = "qemu"
         self.architecture = "x86_64"
         self.name = f"libvirt-pool-{self.architecture}"
-        self.images_dir = join(
-            os.sep, "var", "lib", "libvirt", "images", self.architecture
-        )
-        # self.images_dir = join("tests", "images", self.architecture)
+        # Note, a properly SELinux labelled directory is required when SELinux is enabled
+        # self.images_dir = join(
+        #    os.sep, "var", "lib", "libvirt", "images", self.architecture
+        # )
+        self.images_dir = join("tests", "images", self.architecture)
         if not exists(self.images_dir):
             self.assertTrue(makedirs(self.images_dir))
 

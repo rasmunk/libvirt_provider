@@ -10,10 +10,10 @@ DUMMY = "dummy"
 INSTANCE = "instance"
 CONTAINER = "container"
 
-INSTANCE_OPERATIONS = ["create", "remove", "list"]
+INSTANCE_OPERATIONS = ["create", "remove", "ls"]
 INSTANCE_CLI = {INSTANCE: INSTANCE_OPERATIONS}
 
-CONTAINER_OPERATIONS = ["create", "remove", "list"]
+CONTAINER_OPERATIONS = ["create", "remove", "ls"]
 CONTAINER_CLI = {CONTAINER: CONTAINER_OPERATIONS}
 
 LIBVIRT_CLI_STRUCTURE = [INSTANCE_CLI, CONTAINER_CLI]
