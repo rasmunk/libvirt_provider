@@ -139,7 +139,7 @@ class LibvirtDriver:
         disk_image_path=None,
         disk_target_dev="hda",
         disk_target_bus="ide",
-        memory_size="1024",
+        memory_size="1024MiB",
         num_vcpus=1,
         cpu_architecture="x86_64",
         machine="pc",
@@ -147,6 +147,44 @@ class LibvirtDriver:
         serial_type_target_port=0,
         console_type="pty",
     ):
+        # memory_size is interpreted as KiB when passed to libvirt, allow for conversion from multiple units
+        if "kib" in memory_size.lower() or "ki" in memory_size.lower():
+            memory_size = int(memory_size.lower().replace("kib", "").replace("ki", ""))
+        elif "mib" in memory_size.lower() or "mi" in memory_size.lower():
+            memory_size = (
+                int(memory_size.lower().replace("mib", "").replace("mi", "")) * 1024
+            )
+        elif "mb" in memory_size.lower() or "m" in memory_size.lower():
+            memory_size = (
+                int(memory_size.lower().replace("mb", "").replace("m", "")) * 1000
+            )
+        elif "gib" in memory_size.lower() or "gi" in memory_size.lower():
+            memory_size = (
+                int(memory_size.lower().replace("gib", "").replace("gi", ""))
+                * 1024
+                * 1024
+            )
+        elif "gb" in memory_size.lower() or "g" in memory_size.lower():
+            memory_size = (
+                int(memory_size.lower().replace("gb", "").replace("g", ""))
+                * 1000
+                * 1000
+            )
+        elif "tib" in memory_size.lower() or "ti" in memory_size.lower():
+            memory_size = (
+                int(memory_size.lower().replace("tib", "").replace("ti", ""))
+                * 1024
+                * 1024
+                * 1024
+            )
+        elif "tb" in memory_size.lower() or "t" in memory_size.lower():
+            memory_size = (
+                int(memory_size.lower().replace("tb", "").replace("t", ""))
+                * 1000
+                * 1000
+                * 1000
+            )
+
         xml_desc = f"""
         <domain type='{domain_type}'>
           <name>{name}</name>

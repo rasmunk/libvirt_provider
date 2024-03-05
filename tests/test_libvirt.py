@@ -180,7 +180,7 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
             "disk_image_path": test_image,
             "disk_target_dev": "hda",
             "disk_target_bus": "ide",
-            "memory_size": "1024",
+            "memory_size": "1024MiB",
             "num_vcpus": 1,
             "cpu_architecture": self.architecture,
             "machine": "pc",

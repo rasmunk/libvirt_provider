@@ -63,8 +63,8 @@ def create_group(parser):
         "-ms",
         "--memory-size",
         dest="{}_memory_size".format(INSTANCE),
-        default="1024",
-        help="The memory size of the instance",
+        default="1024MiB",
+        help="The memory size of the instance, interpreted as KiB. Default is 1024MiB.",
     )
     instance_group.add_argument(
         "-vs",
@@ -105,7 +105,9 @@ def create_group(parser):
 def remove_group(parser):
     instance_group = parser.add_argument_group(title="Instance remove arguments")
     instance_group.add_argument(
-        "id", action=PositionalArgumentsAction, help="The id of the instance to be removed"
+        "id",
+        action=PositionalArgumentsAction,
+        help="The id of the instance to be removed",
     )
 
 

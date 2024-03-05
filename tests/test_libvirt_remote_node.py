@@ -100,7 +100,7 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
         node_options = {
             "name": "test-1",
             "disk_image_path": test_image,
-            "memory_size": "1024",
+            "memory_size": "1024MiB",
             **loaded_node_options,
         }
 
@@ -122,7 +122,7 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
         node_options = {
             "name": "test-2",
             "disk_image_path": test_image,
-            "memory_size": "1024",
+            "memory_size": "1024MiB",
             **loaded_node_options,
         }
 
