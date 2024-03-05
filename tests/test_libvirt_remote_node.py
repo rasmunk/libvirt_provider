@@ -63,14 +63,18 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(self.datastore.mkdir(self.images_dir, recursive=True))
         if not self.datastore.exists(self.image):
             self.assertTrue(self.datastore.upload(self.image, self.image))
-
         # TODO, lookup the remote node uid/gid for the self.libvirt_user
-        # qemu_uid, qemu_gid = lookup_uid(self.libvirt_user), lookup_gid(self.libvirt_user)
+        remote_qemu_uid, remote_qemu_gid = 107, 107
         for i in range(2):
             test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
             if not self.datastore.exists(test_image):
                 self.assertTrue(self.datastore.copy(self.image, test_image))
-            # TODO, set the remote uid/gid via the fstat call on the datastore
+            self.assertTrue(self.datastore.exists(test_image))
+            test_image_stats = self.datastore.stat(test_image)
+            self.assertNotEqual(test_image_stats, False)
+            test_image_stats.uid = remote_qemu_uid
+            test_image_stats.gid = remote_qemu_gid
+            self.assertTrue(self.datastore.setstat(test_image, test_image_stats))
 
         open_uri = "qemu:///session"
         remote_uri = f"qemu+ssh://{username}@{hostname}/session"
