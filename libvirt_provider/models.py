@@ -236,7 +236,7 @@ class LXCDriver(LibvirtDriver):
 
     def _create(
         self,
-        domain_type="lcx",
+        domain_type="lxc",
         name=None,
         memory_size="1024",
         num_vcpus=1,
