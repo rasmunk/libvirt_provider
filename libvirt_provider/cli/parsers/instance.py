@@ -102,6 +102,20 @@ def create_group(parser):
         help="The console type",
     )
     instance_group.add_argument(
+        "-st",
+        "--serial-type",
+        dest="{}_serial_type".format(INSTANCE),
+        default="pty",
+        help="The serial type",
+    )
+    instance_group.add_argument(
+        "-sttp",
+        "--serial-type-target-port",
+        dest="{}_serial_type_target_port".format(INSTANCE),
+        default="0",
+        help="The serial type target port",
+    )
+    instance_group.add_argument(
         "-tp",
         "--template-path",
         dest="{}_template_path".format(INSTANCE),

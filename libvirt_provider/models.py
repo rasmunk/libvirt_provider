@@ -101,6 +101,9 @@ class LibvirtDriver:
         return False
 
     def create(self, name, disk_image_path, template_path=None, **kwargs):
+        if "memory_size" in kwargs:
+            kwargs["memory_size"] = self._prepare_memory(kwargs["memory_size"])
+
         if not template_path:
             created_id = self._create(
                 name=name, disk_image_path=disk_image_path, **kwargs
@@ -141,7 +144,7 @@ class LibvirtDriver:
 
         if not xml_desc:
             return None
-        domain = self._conn.createXML(xml_desc)
+        domain = self._create_xml(xml_desc)
         if domain:
             return domain.UUIDString()
         return None
@@ -164,43 +167,6 @@ class LibvirtDriver:
         serial_type_target_port=0,
         console_type="pty",
     ):
-        # memory_size is interpreted as KiB when passed to libvirt, allow for conversion from multiple units
-        if "kib" in memory_size.lower() or "ki" in memory_size.lower():
-            memory_size = int(memory_size.lower().replace("kib", "").replace("ki", ""))
-        elif "mib" in memory_size.lower() or "mi" in memory_size.lower():
-            memory_size = (
-                int(memory_size.lower().replace("mib", "").replace("mi", "")) * 1024
-            )
-        elif "mb" in memory_size.lower() or "m" in memory_size.lower():
-            memory_size = (
-                int(memory_size.lower().replace("mb", "").replace("m", "")) * 1000
-            )
-        elif "gib" in memory_size.lower() or "gi" in memory_size.lower():
-            memory_size = (
-                int(memory_size.lower().replace("gib", "").replace("gi", ""))
-                * 1024
-                * 1024
-            )
-        elif "gb" in memory_size.lower() or "g" in memory_size.lower():
-            memory_size = (
-                int(memory_size.lower().replace("gb", "").replace("g", ""))
-                * 1000
-                * 1000
-            )
-        elif "tib" in memory_size.lower() or "ti" in memory_size.lower():
-            memory_size = (
-                int(memory_size.lower().replace("tib", "").replace("ti", ""))
-                * 1024
-                * 1024
-                * 1024
-            )
-        elif "tb" in memory_size.lower() or "t" in memory_size.lower():
-            memory_size = (
-                int(memory_size.lower().replace("tb", "").replace("t", ""))
-                * 1000
-                * 1000
-                * 1000
-            )
 
         xml_desc = f"""
         <domain type='{domain_type}'>
@@ -225,10 +191,57 @@ class LibvirtDriver:
           </devices>
         </domain>
         """
-        domain = self._conn.createXML(xml_desc)
+        domain = self._create_xml(xml_desc)
         if not domain:
             return None
         return domain.UUIDString()
+
+
+    def _prepare_memory(self, memory_size):
+        # memory_size is interpreted as KiB when passed to libvirt, allow for conversion from multiple units
+        expanded_memory_size = None
+        if "kib" in memory_size.lower() or "ki" in memory_size.lower():
+            expanded_memory_size = int(memory_size.lower().replace("kib", "").replace("ki", ""))
+        elif "mib" in memory_size.lower() or "mi" in memory_size.lower():
+            expanded_memory_size = (
+                int(memory_size.lower().replace("mib", "").replace("mi", "")) * 1024
+            )
+        elif "mb" in memory_size.lower() or "m" in memory_size.lower():
+            expanded_memory_size = (
+                int(memory_size.lower().replace("mb", "").replace("m", "")) * 1000
+            )
+        elif "gib" in memory_size.lower() or "gi" in memory_size.lower():
+            expanded_memory_size = (
+                int(memory_size.lower().replace("gib", "").replace("gi", ""))
+                * 1024
+                * 1024
+            )
+        elif "gb" in memory_size.lower() or "g" in memory_size.lower():
+            expanded_memory_size = (
+                int(memory_size.lower().replace("gb", "").replace("g", ""))
+                * 1000
+                * 1000
+            )
+        elif "tib" in memory_size.lower() or "ti" in memory_size.lower():
+            expanded_memory_size = (
+                int(memory_size.lower().replace("tib", "").replace("ti", ""))
+                * 1024
+                * 1024
+                * 1024
+            )
+        elif "tb" in memory_size.lower() or "t" in memory_size.lower():
+            expanded_memory_size = (
+                int(memory_size.lower().replace("tb", "").replace("t", ""))
+                * 1000
+                * 1000
+                * 1000
+            )
+        else:
+            expanded_memory_size = int(memory_size)
+        return expanded_memory_size
+
+    def _create_xml(self, xml):
+        return self._conn.createXML(xml)
 
     def show(self, node_id):
         return self.get(node_id)
@@ -326,7 +339,7 @@ class LXCDriver(LibvirtDriver):
             </devices>
         </domain>
         """
-        domain = self._conn.createXML(xml_desc)
+        domain = self._create_xml(xml_desc)
         if not domain:
             return None
         return domain.UUIDString()
