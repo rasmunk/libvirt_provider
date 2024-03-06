@@ -229,6 +229,9 @@ class LibvirtDriver:
             return None
         return domain.UUIDString()
 
+    def show(self, node_id):
+        return self.get(node_id)
+
     def start(self, node_id):
         domain = self._get(node_id)
         if not domain:

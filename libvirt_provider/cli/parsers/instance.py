@@ -111,5 +111,14 @@ def remove_group(parser):
     )
 
 
+def show_group(parser):
+    instance_group = parser.add_argument_group(title="Instance show arguments")
+    instance_group.add_argument(
+        "id",
+        action=PositionalArgumentsAction,
+        help="The id of the instance to be shown",
+    )
+
+
 def ls_group(parser):
     _ = parser.add_argument_group(title="Instance list arguments")

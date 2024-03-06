@@ -10,7 +10,7 @@ DUMMY = "dummy"
 INSTANCE = "instance"
 CONTAINER = "container"
 
-INSTANCE_OPERATIONS = ["create", "remove", "ls"]
+INSTANCE_OPERATIONS = ["create", "remove", "show", "ls"]
 INSTANCE_CLI = {INSTANCE: INSTANCE_OPERATIONS}
 
 CONTAINER_OPERATIONS = ["create", "remove", "ls"]
