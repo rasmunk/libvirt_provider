@@ -39,6 +39,13 @@ def create_group(parser):
         help="The disk type",
     )
     instance_group.add_argument(
+        "-ddn",
+        "--disk-driver-name",
+        dest="{}_disk_driver_name".format(INSTANCE),
+        default="qemu",
+        help="The disk driver name",
+    )
+    instance_group.add_argument(
         "-ddt",
         "--disk-driver-type",
         dest="{}_disk_driver_type".format(INSTANCE),

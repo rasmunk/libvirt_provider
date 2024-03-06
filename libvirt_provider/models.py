@@ -151,6 +151,7 @@ class LibvirtDriver:
         domain_type="qemu",
         name=None,
         disk_device_type="file",
+        disk_driver_name="qemu",
         disk_driver_type="qcow2",
         disk_image_path=None,
         disk_target_dev="hda",
@@ -211,7 +212,7 @@ class LibvirtDriver:
           </os>
           <devices>
             <disk type='{disk_device_type}' device='disk'>
-              <driver name='qemu' type='{disk_driver_type}'/>
+              <driver name='{disk_driver_name}' type='{disk_driver_type}'/>
               <source file='{disk_image_path}'/>
               <target dev='{disk_target_dev}' bus='{disk_target_bus}'/>
             </disk>
