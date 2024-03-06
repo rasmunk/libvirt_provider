@@ -12,7 +12,24 @@ class Node:
         self.config = kwargs
 
     def print_state(self):
-        print("Node: {} - {} - {}".format(self.id, self.name, self.config))
+        print(
+            "Node id: {}, name: {}, state: {}, config: {}".format(
+                self.id, self.name, self.state, self.config
+            )
+        )
+
+    def __str__(self):
+        return "Node id: {}, name: {}, state: {}, config: {}".format(
+            self.id, self.name, self.state, self.config
+        )
+
+    def asdict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "state": self.state,
+            "config": self.config,
+        }
 
 
 class DummyDriver:
@@ -34,12 +51,11 @@ class DummyDriver:
     def remove(self, node):
         return True
 
-    def list(self):
+    def ls(self):
         return [Node(str(uuid.uuid4()), "dummy-node-{}".format(i)) for i in range(4)]
 
 
 def auth_callback(creds, callback_data):
-    print("Hello from auth")
     return 0
 
 
@@ -257,7 +273,7 @@ class LibvirtDriver:
             return False
         return True
 
-    def list(self):
+    def ls(self):
         domains = self._conn.listAllDomains()
         if domains is None or not isinstance(domains, (tuple, set, list)):
             return False
@@ -332,5 +348,5 @@ class LXCDriver(LibvirtDriver):
     def remove(self, container):
         raise NotImplementedError
 
-    def list(self):
+    def ls(self):
         raise NotImplementedError

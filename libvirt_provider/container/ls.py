@@ -1,6 +1,6 @@
 async def ls(client):
     response = {}
-    containers = client.list()
+    containers = client.ls()
     if not containers:
         response["msg"] = "Failed to list containers"
         return False, response

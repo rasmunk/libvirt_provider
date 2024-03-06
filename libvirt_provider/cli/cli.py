@@ -8,6 +8,8 @@ from libvirt_provider.cli.helpers import cli_exec, import_from_module
 
 
 def to_str(o):
+    if hasattr(o, "asdict"):
+        return o.asdict()
     if isinstance(o, datetime.datetime):
         return o.__str__()
 
