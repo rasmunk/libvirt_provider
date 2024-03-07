@@ -1,7 +1,7 @@
 async def ls(client):
     response = {}
     containers = client.ls()
-    if not containers:
+    if containers is None or not isinstance(containers, (list, tuple, set)):
         response["msg"] = "Failed to list containers"
         return False, response
 
