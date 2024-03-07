@@ -67,14 +67,14 @@ def create_group(parser):
         help="The disk target bus",
     )
     instance_group.add_argument(
-        "-ms",
+        "-memory",
         "--memory-size",
         dest="{}_memory_size".format(INSTANCE),
         default="1024MiB",
         help="The memory size of the instance, interpreted as KiB. Default is 1024MiB.",
     )
     instance_group.add_argument(
-        "-vs",
+        "-vcpus",
         "--num-vcpus",
         dest="{}_num_vcpus".format(INSTANCE),
         default="1",
