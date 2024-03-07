@@ -56,14 +56,14 @@ def create_group(parser):
         "-dtd",
         "--disk-target-dev",
         dest="{}_disk_target_dev".format(INSTANCE),
-        default="hda",
+        default="vda",
         help="The disk target device",
     )
     instance_group.add_argument(
         "-dtb",
         "--disk-target-bus",
         dest="{}_disk_target_bus".format(INSTANCE),
-        default="ide",
+        default="virtio",
         help="The disk target bus",
     )
     instance_group.add_argument(
@@ -86,6 +86,13 @@ def create_group(parser):
         dest="{}_cpu_architecture".format(INSTANCE),
         default="x86_64",
         help="The CPU architecture",
+    )
+    instance_group.add_argument(
+        "-cpu-mode",
+        "--cpu-mode",
+        dest="{}_cpu_mode".format(INSTANCE),
+        default="host-model",
+        help="The CPU mode to be used when running the instance",
     )
     instance_group.add_argument(
         "-mach",

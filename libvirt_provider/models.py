@@ -162,12 +162,12 @@ class LibvirtDriver:
         memory_size="1024MiB",
         num_vcpus=1,
         cpu_architecture="x86_64",
+        cpu_mode="host-model",
         machine="pc",
         serial_type="pty",
         serial_type_target_port=0,
         console_type="pty",
     ):
-
         xml_desc = f"""
         <domain type='{domain_type}'>
           <name>{name}</name>
@@ -176,6 +176,7 @@ class LibvirtDriver:
           <os>
             <type arch='{cpu_architecture}' machine='{machine}'>hvm</type>
           </os>
+          <cpu mode='{cpu_mode}'/>
           <devices>
             <disk type='{disk_device_type}' device='disk'>
               <driver name='{disk_driver_name}' type='{disk_driver_type}'/>
@@ -196,12 +197,13 @@ class LibvirtDriver:
             return None
         return domain.UUIDString()
 
-
     def _prepare_memory(self, memory_size):
         # memory_size is interpreted as KiB when passed to libvirt, allow for conversion from multiple units
         expanded_memory_size = None
         if "kib" in memory_size.lower() or "ki" in memory_size.lower():
-            expanded_memory_size = int(memory_size.lower().replace("kib", "").replace("ki", ""))
+            expanded_memory_size = int(
+                memory_size.lower().replace("kib", "").replace("ki", "")
+            )
         elif "mib" in memory_size.lower() or "mi" in memory_size.lower():
             expanded_memory_size = (
                 int(memory_size.lower().replace("mib", "").replace("mi", "")) * 1024
