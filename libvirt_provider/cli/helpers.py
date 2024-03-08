@@ -73,7 +73,7 @@ def cli_exec(arguments):
     if not func:
         return False
 
-    ## Extract the arguments provided
+    # Extract the arguments provided
     driver_kwargs, remaining_driver_kwargs = extract_arguments(
         arguments, provider_groups
     )

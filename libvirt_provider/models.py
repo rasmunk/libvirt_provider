@@ -354,18 +354,3 @@ class LXCDriver(LibvirtDriver):
         if not created_id:
             return False
         return self.get(created_id)
-
-    def get(self, container_id):
-        raise NotImplementedError
-
-    def start(self, container):
-        raise NotImplementedError
-
-    def stop(self, container):
-        raise NotImplementedError
-
-    def remove(self, container):
-        raise NotImplementedError
-
-    def ls(self):
-        raise NotImplementedError

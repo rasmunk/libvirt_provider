@@ -76,7 +76,6 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
             test_image_stats.gid = remote_qemu_gid
             self.assertTrue(self.datastore.setstat(test_image, test_image_stats))
 
-        open_uri = "qemu:///session"
         remote_uri = f"qemu+ssh://{username}@{hostname}/session"
         self.client = new_client(LIBVIRT, open_uri=remote_uri)
 
