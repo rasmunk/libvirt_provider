@@ -35,5 +35,12 @@ def remove_group(parser):
     )
 
 
+def show_group(parser):
+    container_group = parser.add_argument_group(title="Container show arguments")
+    container_group.add_argument(
+        "name", action=PositionalArgumentsAction, help="The name of the container"
+    )
+
+
 def ls_group(parser):
     _ = parser.add_argument_group(title="Container list arguments")
