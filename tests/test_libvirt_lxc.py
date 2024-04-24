@@ -1,7 +1,6 @@
 import unittest
 from libvirt_provider.defaults import CONTAINER
 from libvirt_provider.client import new_client
-from libvirt_provider.models import Node
 
 
 class TestContainer(unittest.IsolatedAsyncioTestCase):

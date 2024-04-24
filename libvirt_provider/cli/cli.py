@@ -97,8 +97,7 @@ def functions_cli(commands):
 
 def run():
     parser = argparse.ArgumentParser(
-        prog=PACKAGE_NAME,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        prog=PACKAGE_NAME, formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     commands = parser.add_subparsers(title="COMMAND")
 

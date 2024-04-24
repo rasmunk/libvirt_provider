@@ -5,5 +5,5 @@ async def remove(client, id):
         response["msg"] = f"Failed to remove instance: {id}"
         return False, response
     response["id"] = id
-    response["msg"] = f"Removed instance"
+    response["msg"] = "Removed instance"
     return True, response
