@@ -1,5 +1,5 @@
 environments:
-  pypi_package:
+  libvirt_provider:
     environment_variables:
       GIT_USER: "{{SECRET:[github][username]}}"
       TWINE_USERNAME: "{{SECRET:[libvirt_provider][username]}}"
