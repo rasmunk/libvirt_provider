@@ -19,6 +19,8 @@ pipelines:
         # says about type of material and url at once
         git: https://github.com/rasmunk/libvirt_provider.git
         branch: master
+        username: ${GIT_USER}
+        password: "{{SECRET:[github][access_token]}}"
         destination: libvirt_provider
       publish_python_git:
         git: https://github.com/rasmunk/publish-python-scripts.git
