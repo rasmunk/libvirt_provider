@@ -2,8 +2,8 @@ environments:
   libvirt_provider:
     environment_variables:
       GIT_USER: "{{SECRET:[github][username]}}"
-      TWINE_USERNAME: "{{SECRET:[libvirt_provider][username]}}"
-      TWINE_PASSWORD: "{{SECRET:[libvirt_provider][password]}}"
+      PYPI_USERNAME: "{{SECRET:[libvirt_provider][username]}}"
+      PYPI_PASSWORD: "{{SECRET:[libvirt_provider][password]}}"
     pipelines:
       - libvirt_provider
 pipelines:
