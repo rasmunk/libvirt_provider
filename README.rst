@@ -16,12 +16,13 @@ Installation
 Dependencies
 ------------
 
-Before the `libvirt-provider` can be succesfully installed, the distribution associated dependency script
-in the `dep` folder should be executed. This will install the nessesary library files that `libvirt-provider`
+Before the ``libvirt-provider`` can be succesfully installed, the distribution associated dependency script
+in the ``devel_dep`` folder should be executed. This will install the nessesary library files that ``libvirt-provider``
 require to function properly.
 
-In addition, before an actual resource such as an instance or a container can be created by `libvirt-provider`,
-the required `libvirt` daemon has to be running on the system.
+In addition, before an actual resource such as an instance or a container can be created by ``libvirt-provider``,
+the required ``libvirt`` daemon has to be running on the system. This can be installed via the distribution installer
+scripts in the ``runtime_dep`` folder.
 
 -----
 Usage
@@ -99,18 +100,18 @@ For instance, to orchestrate an instance, the following command can be used::
                             The path to the XML template that should be used to create the instance.
 
 
-As indicated by the instance creation command, the `libvirt-provider` expects that a disk image file is provided as an argument::
+As indicated by the instance creation command, the ``libvirt-provider`` expects that a disk image file is provided as an argument::
 
     $ libvirt-provider instance create <name> <disk-image-file>
 
 The <disk-image-file> can either be prepared by downloading directly from one of the distribution repositories, or a prepared with a tool
-like our `gen-vm-image <https://github.com/ucphhpc/gen-vm-image>`_ before it is used to create an instance via `libvirt-provider`.
+like our `gen-vm-image <https://github.com/ucphhpc/gen-vm-image>`_ before it is used to create an instance via ``libvirt-provider``.
 
-In turn, an orchestrated instance can be removed via the `remove` argument::
+In turn, an orchestrated instance can be removed via the ``remove`` argument::
 
     $ libvirt-provider instance remove <instance-id>
 
-To discover the <instance-id> of a particular instance, the `list` argument can be used::
+To discover the <instance-id> of a particular instance, the ``list`` argument can be used::
 
     $ libvirt-provider instance ls
     {
