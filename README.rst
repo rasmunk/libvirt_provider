@@ -33,24 +33,13 @@ Currently it supports orchestrating virtual machines and containers.
 These resources can be orchestrated via the CLI interface::
 
     $ libvirt-provider -h
-    usage: libvirt_provider [-h]
-    [--driver-name DRIVER_NAME]
-    [--driver-uri DRIVER_URI]
-    [--driver-key DRIVER_KEY]
-    [--driver-secret DRIVER_SECRET]
-    {instance,container} ...
+    usage: libvirt_provider [-h] {instance,container} ...
 
-    optional arguments:
+    options:
     -h, --help            show this help message and exit
 
     COMMAND:
     {instance,container}
-
-    Driver arguments:
-    --driver-name DRIVER_NAME
-    --driver-uri DRIVER_URI
-    --driver-key DRIVER_KEY
-    --driver-secret DRIVER_SECRET
 
 For instance, to orchestrate an instance, the following command can be used::
 
