@@ -3,7 +3,7 @@ import datetime
 import json
 from libvirt_provider.utils.format import eprint
 from libvirt_provider.defaults import PACKAGE_NAME, LIBVIRT_CLI_STRUCTURE
-from libvirt_provider.cli.input_groups.driver import add_driver_group
+from libvirt_provider.cli.input_groups.driver import add_driver_group, has_driver_group
 from libvirt_provider.cli.helpers import cli_exec, import_from_module
 
 
@@ -81,15 +81,13 @@ def recursive_add_libvirt_operations(
             )
 
 
-def driver_cli(parser):
-    add_driver_group(parser)
-
-
-def functions_cli(commands):
+def libvirt_provider_cli(commands):
     for libvirt_cli_structure in LIBVIRT_CLI_STRUCTURE:
         for libvirt_cli_type, libvirt_cli_operations in libvirt_cli_structure.items():
             function_provider = commands.add_parser(libvirt_cli_type)
             function_parser = function_provider.add_subparsers(title="COMMAND")
+            if has_driver_group(libvirt_cli_type):
+                add_driver_group(function_provider, libvirt_cli_type)
             recursive_add_libvirt_operations(
                 libvirt_cli_type, libvirt_cli_operations, function_parser
             )
@@ -100,10 +98,8 @@ def run():
         prog=PACKAGE_NAME, formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     commands = parser.add_subparsers(title="COMMAND")
-
-    driver_cli(parser)
     # Add libvirt functions to the CLI
-    functions_cli(commands)
+    libvirt_provider_cli(commands)
     args = parser.parse_args()
     # Convert to a dictionary
     arguments = vars(args)
