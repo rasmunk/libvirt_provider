@@ -113,4 +113,9 @@ In turn, an orchestrated instance can be removed via the `remove` argument::
 To discover the <instance-id> of a particular instance, the `list` argument can be used::
 
     $ libvirt-provider instance ls
+    {
+        "instances": [],
+        "msg": "Instances",
+        "status": "success"
+    }
 
