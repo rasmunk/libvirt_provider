@@ -77,7 +77,13 @@ class LibvirtDriver:
         ]
         flags = 0
         auth_list = [valid_auth_options, auth_callback, None]
-        self._conn = libvirt.openAuth(self._open_uri, auth_list, flags)
+        try:
+            self._conn = libvirt.openAuth(self._open_uri, auth_list, flags)
+        except libvirt.libvirtError as err:
+            print("Could not connect to the libvirt socket: {} - {}".format(self._open_uri, err))
+            print("Are you sure that the libvirt daemon is running?")
+            self._conn = None
+            raise Exception("Failed to connect to the libvirt daemon socket")
 
     def close(self):
         self._conn.close()
