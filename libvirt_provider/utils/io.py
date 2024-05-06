@@ -144,6 +144,46 @@ def chown(path, uid, gid):
     return True
 
 
+def get_uid(path):
+    try:
+        return stat(path).st_uid
+    except Exception as err:
+        print("Failed to get file uid: {} - {}".format(path, err))
+    return False
+
+
+def get_gid(path):
+    try:
+        return stat(path).st_gid
+    except Exception as err:
+        print("Failed to get file gid: {} - {}".format(path, err))
+    return False
+
+
+def get_mode(path):
+    try:
+        return oct(stat(path).st_mode)
+    except Exception as err:
+        print("Failed to get file mode: {} - {}".format(path, err))
+    return False
+
+
+def access(path, mode):
+    try:
+        return os.access(path, mode)
+    except Exception as err:
+        print("Failed to access file: {} - {}".format(path, err))
+    return False
+
+
+def stat(path):
+    try:
+        return os.stat(path)
+    except Exception as err:
+        print("Failed to get file stat: {} - {}".format(path, err))
+    return False
+
+
 def parse_yaml(data):
     try:
         parsed = yaml.safe_load(data)

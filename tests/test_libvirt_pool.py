@@ -10,6 +10,9 @@ from libvirt_provider.utils.io import (
     load_json,
     chown,
     chmod,
+    get_uid,
+    get_gid,
+    access,
 )
 from libvirt_provider.utils.user import (
     lookup_uid,
@@ -67,8 +70,14 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(copy(self.image, test_image))
             self.assertTrue(exists(test_image))
             # Ensure correct ownership on image file
-            self.assertTrue(chown(test_image, qemu_uid, qemu_gid))
-            self.assertTrue(chmod(test_image, 0o755))
+            existing_uid, existing_gid = get_uid(test_image), get_gid(test_image)
+            self.assertIsNot(existing_uid, False)
+            self.assertIsNot(existing_gid, False)
+            if existing_uid != qemu_uid or existing_gid != qemu_gid:
+                self.assertTrue(chown(test_image, qemu_uid, qemu_gid))
+            if not access(test_image, os.R_OK | os.X_OK):
+                self.assertTrue(chmod(test_image, 0o755))
+            self.assertTrue(access(test_image, os.R_OK | os.X_OK))
 
     async def asyncTearDown(self):
         # Ensure that any pool is destroyed
@@ -133,3 +142,7 @@ class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
 
             removed, remove_response = await remove(self.client, node.id)
             self.assertTrue(removed)
+
+
+if __name__ == "__main__":
+    unittest.main()
