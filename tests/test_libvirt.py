@@ -11,7 +11,12 @@ from libvirt_provider.utils.io import (
     chown,
     chmod,
 )
-from libvirt_provider.utils.user import lookup_uid, lookup_gid
+from libvirt_provider.utils.user import (
+    lookup_uid,
+    lookup_gid,
+    find_user_with_username,
+    find_group_with_groupname,
+)
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.models import Node
 from libvirt_provider.client import new_client
@@ -25,7 +30,12 @@ from libvirt_provider.instance.state import state
 
 class TestLibvirt(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        self.user = "qemu"
+        user_base = "qemu"
+        self.user = find_user_with_username(user_base)
+        self.assertIsNot(self.user, False)
+        self.group = find_group_with_groupname(user_base)
+        self.assertIsNot(self.group, False)
+
         self.architecture = "x86_64"
         self.name = f"libvirt-{self.architecture}"
         # Note, a properly SELinux labelled directory is required when SELinux is enabled
@@ -48,7 +58,10 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(True)
         self.assertTrue(exists(self.image))
 
-        qemu_uid, qemu_gid = lookup_uid(self.user), lookup_gid(self.user)
+        qemu_uid, qemu_gid = lookup_uid(self.user), lookup_gid(self.group)
+        self.assertIsNot(qemu_uid, False)
+        self.assertIsNot(qemu_gid, False)
+
         open_uri = "qemu:///session"
         self.client = new_client(LIBVIRT, open_uri=open_uri)
         for i in range(6):

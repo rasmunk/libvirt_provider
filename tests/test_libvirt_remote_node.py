@@ -16,7 +16,7 @@ from deling.authenticators.ssh import SSHAuthenticator
 
 class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        self.libvirt_user = "qemu"
+        self.remote_user = "qemu"
         self.architecture = "x86_64"
         self.name = f"libvirt-remote-{self.architecture}"
         self.images_dir = join("tests", "images", self.architecture)
