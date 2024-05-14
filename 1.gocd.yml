@@ -8,7 +8,7 @@ environments:
       - libvirt_provider
 pipelines:
   libvirt_provider:
-    group: pypi_package
+    group: bare_metal_pypi_package
     locking: off
     timer:
       # Run on the 1st at 00:00 of every month
@@ -18,16 +18,17 @@ pipelines:
       libvirt_provider_git:
         name: libvirt_provider
         git: https://github.com/rasmunk/libvirt_provider.git
-        branch: master
+        branch: main
         destination: libvirt_provider
       publish_python_git:
-        name: publish_python_git
         git: https://github.com/rasmunk/publish-python-scripts.git
         branch: main
+        username: ${GIT_USER}
+        password: "{{SECRET:[github][access_token]}}"
         destination: publish-python-scripts
     parameters:
       ARGS: ''
       SRC_DIRECTORY: libvirt_provider
       TEST_DIRECTORY: libvirt_provider
       PUSH_DIRECTORY: publish-python-scripts
-    template: pypi_package
+    template: bare_metal_pypi_package
