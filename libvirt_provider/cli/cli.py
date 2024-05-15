@@ -81,7 +81,7 @@ def recursive_add_libvirt_operations(
             )
 
 
-def libvirt_provider_cli(commands):
+def cli(commands):
     for libvirt_cli_structure in LIBVIRT_CLI_STRUCTURE:
         for libvirt_cli_type, libvirt_cli_operations in libvirt_cli_structure.items():
             function_provider = commands.add_parser(libvirt_cli_type)
@@ -99,7 +99,7 @@ def run():
     )
     commands = parser.add_subparsers(title="COMMAND")
     # Add libvirt functions to the CLI
-    libvirt_provider_cli(commands)
+    cli(commands)
     args = parser.parse_args()
     # Convert to a dictionary
     arguments = vars(args)
