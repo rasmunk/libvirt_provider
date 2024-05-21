@@ -135,7 +135,9 @@ def chmod(path, mode, **kwargs):
     return True
 
 
-def chown(path, uid, gid):
+# Change the owner of a file
+# -1 means that no change will be applied
+def chown(path, uid=-1, gid=-1):
     try:
         os.chown(path, uid, gid)
     except Exception as err:

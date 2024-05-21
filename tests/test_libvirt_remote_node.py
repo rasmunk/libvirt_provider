@@ -1,7 +1,15 @@
 import unittest
 import os
-import wget
-from libvirt_provider.utils.io import join, makedirs, exists, load_json
+from libvirt_provider.utils.io import (
+    join,
+    makedirs,
+    exists,
+    load_json,
+    get_gid,
+    chown,
+    chmod,
+    access,
+)
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.models import Node
 from libvirt_provider.client import new_client
@@ -10,56 +18,141 @@ from libvirt_provider.instance.remove import remove
 from libvirt_provider.instance.stop import stop
 from libvirt_provider.instance.get import get
 from libvirt_provider.instance.state import state
+from libvirt_provider.utils.user import (
+    lookup_gid,
+    find_user_with_username,
+    find_group_with_groupname,
+)
 from deling.io.datastores.core import SFTPStore
 from deling.authenticators.ssh import SSHAuthenticator
+from .utils.job import run
+
+current_dir = os.path.abspath(os.path.dirname(__file__))
+
+
+class TestContext:
+
+    def __init__(self):
+        self.init_done = False
+
+    async def setUp(self):
+        if self.init_done:
+            return
+
+        user_base = "qemu"
+        self.user = find_user_with_username(user_base)
+        assert self.user
+        self.group = find_group_with_groupname(user_base)
+        assert self.group
+
+        self.architecture = "x86_64"
+        self.name = f"host-vm-for-remote-test-{self.architecture}"
+
+        # Start a dummy VM, that can be used
+        # to test the remote libvirt node
+
+        # Download and configure the test image
+        self.images_dir = join(current_dir, "images", self.architecture)
+        if not exists(self.images_dir):
+            assert makedirs(self.images_dir)
+        self.base_image = join(self.images_dir, f"{self.name}-base.qcow2")
+        gen_vm_dir = join(current_dir, "res", "gen-vm-image")
+        if not exists(self.base_image):
+            gen_vm_architecture = join(gen_vm_dir, "architecture.yml")
+            gen_vm_command = [
+                "gen-vm-image",
+                "--architecture-path",
+                gen_vm_architecture,
+                "--image-output-path",
+                self.base_image,
+            ]
+            result = run(gen_vm_command)
+            assert result["returncode"] == 0
+
+        # Configure the VM image
+        self.image = join(self.images_dir, f"{self.name}-configured.qcow2")
+        if not exists(self.image):
+            cloud_init_config_path = join(gen_vm_dir, "cloud-init-config")
+            meta_data_path = join(cloud_init_config_path, "meta-data")
+            user_data_path = join(cloud_init_config_path, "user-data")
+            vendor_data_path = join(cloud_init_config_path, "vendor-data")
+            configure_vm_command = [
+                "configure-vm-image",
+                "--image-input-path",
+                self.image,
+                "--config-user-data-path",
+                user_data_path,
+                "--config-meta-data-path",
+                meta_data_path,
+                "--config-vendor-data-path",
+                vendor_data_path,
+            ]
+            result = run(configure_vm_command)
+            assert result["returncode"] == 0
+
+        qemu_gid = lookup_gid(self.group)
+        assert qemu_gid
+
+        # Ensure that correct permissions are set on the image file
+        existing_gid = get_gid(self.image)
+        assert existing_gid
+
+        if not access(self.image, os.R_OK | os.X_OK):
+            assert chmod(self.image, 0o755)
+        assert access(self.image, os.R_OK | os.X_OK)
+
+        if existing_gid != qemu_gid:
+            assert chown(self.image, gid=qemu_gid)
+
+        node_options_path = join(current_dir, "res", "node_options", "x86_64.json")
+        loaded_node_options = load_json(node_options_path)
+        node_options = {
+            "name": "remote-test-vm",
+            "disk_image_path": self.image,
+            "memory_size": "2048MiB",
+            "cpu_architecture": self.architecture,
+            **loaded_node_options,
+        }
+
+        open_uri = "qemu:///session"
+        self.client = new_client(LIBVIRT, open_uri=open_uri)
+        self.vm_created, response = await create(self.client, **node_options)
+        assert self.vm_created
+        assert "instance" in response
+        assert response["instance"] is not None
+        self.vm = response["instance"]
+        self.init_done = True
+
+    async def tearDown(self):
+        # Remove VM
+        if self.init_done:
+            removed, removed_response = await remove(self.client, self.vm.id)
+            assert removed
+            self.init_done = False
+        if exists(self.image):
+            assert remove(self.image)
 
 
 class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
+
+    context = TestContext()
+
     async def asyncSetUp(self):
+        await self.context.setUp()
         self.remote_user = "qemu"
         self.architecture = "x86_64"
         self.name = f"libvirt-remote-{self.architecture}"
-        self.images_dir = join("tests", "images", self.architecture)
-        if not exists(self.images_dir):
-            self.assertTrue(makedirs(self.images_dir))
-
-        self.image = join(self.images_dir, f"{self.name}-Rocky-9.qcow2")
-        if not exists(self.image):
-            # Download the image
-            url = f"https://download.rockylinux.org/pub/rocky/9/images/{self.architecture}/Rocky-9-GenericCloud-Base.latest.{self.architecture}.qcow2"
-            try:
-                print(f"Downloading image: {url} for testing")
-                wget.download(url, self.image)
-            except Exception as err:
-                print(f"Failed to download image: {url} - {err}")
-                self.assertFalse(True)
-        self.assertTrue(exists(self.image))
 
         username = os.environ.get("LIBVIRT_REMOTE_USERNAME", "mountuser")
         password = os.environ.get("LIBVIRT_REMOTE_PASSWORD", "Passw0rd!")
-        private_key_file = os.environ.get(
-            "LIBVIRT_REMOTE_PRIVATE_KEY_FILE",
-            None,
-        )
-        public_key_file = os.environ.get(
-            "LIBVIRT_REMOTE_PUBLIC_KEY_FILE",
-            None,
-        )
-        if not public_key_file and private_key_file:
-            public_key_file = f"{private_key_file}.pub"
         hostname = os.environ.get("LIBVIRT_REMOTE_HOSTNAME", "127.0.0.1")
         port = os.environ.get("LIBVIRT_REMOTE_PORT", 2222)
-
         self.datastore = SFTPStore(
             host=hostname,
             port=port,
-            authenticator=SSHAuthenticator(
-                username=username,
-                password=password,
-                private_key_file=private_key_file,
-                public_key_file=public_key_file,
-            ),
+            authenticator=SSHAuthenticator(username=username, password=password),
         )
+
         self.assertTrue(self.datastore.mkdir(self.images_dir, recursive=True))
         if not self.datastore.exists(self.image):
             self.assertTrue(self.datastore.upload(self.image, self.image))
@@ -80,6 +173,7 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
         self.client = new_client(LIBVIRT, open_uri=remote_uri)
 
     async def asyncTearDown(self):
+        await self.context.tearDown()
         for i in range(2):
             test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
             self.assertTrue(self.datastore.remove(test_image))
@@ -91,9 +185,7 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
             join(self.images_dir, f"{self.name}-Rocky-9-0.qcow2")
         )
         # Load architecture node_options
-        node_options_path = join(
-            "tests", "res", "node_options", f"{self.architecture}.json"
-        )
+        node_options_path = join("res", "node_options", f"{self.architecture}.json")
         loaded_node_options = load_json(node_options_path)
         self.assertIsInstance(loaded_node_options, dict)
         node_options = {
@@ -113,9 +205,7 @@ class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
             join(self.images_dir, f"{self.name}-Rocky-9-1.qcow2")
         )
         # Load architecture node_options
-        node_options_path = join(
-            "tests", "res", "node_options", f"{self.architecture}.json"
-        )
+        node_options_path = join("res", "node_options", f"{self.architecture}.json")
         loaded_node_options = load_json(node_options_path)
         self.assertIsInstance(loaded_node_options, dict)
         node_options = {

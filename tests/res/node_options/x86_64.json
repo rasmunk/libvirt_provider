@@ -2,6 +2,5 @@
     "domain_type": "kvm",
     "disk_target_dev": "hda",
     "disk_target_bus": "ide",
-    "cpu_architecture": "x86_64",
     "machine": "pc"
 }
