@@ -53,19 +53,8 @@ uninstallcheck:
 check_pre:
 	. $(VENV)/activate; python3 setup.py check -rms
 
-check_init:
-	@echo "Checking if the dummy ssh target is running for the tests"
-	if [ -z "$$(docker ps -q -f 'name=ssh_dummy_target')" ]; then \
-		@echo "Starting dummy ssh target"; \
-		docker run -d --rm --name ssh_dummy_target -p 2222:22 ucphhpc/ssh-mount-dummy:latest; \
-		@echo @Waiting for the dummy ssh target to start; \
-		@sleep 10; \
-	else \
-		echo "Dummy ssh target is already running"; \
-	fi
-
 # The tests requires access to the docker socket
-check: check_pre check_init
+check: check_pre
 	. $(VENV)/activate; pytest -s -v tests/
 
 include Makefile.venv
