@@ -49,8 +49,7 @@ class TestContext:
         self.name = f"host-vm-for-remote-test-{self.architecture}"
 
         # Start a dummy VM, that can be used
-        # to test the remote libvirt node
-
+        # to test the remote libvirt node.
         # Download and configure the test image
         self.images_dir = join(current_dir, "images", self.architecture)
         if not exists(self.images_dir):
