@@ -53,8 +53,11 @@ uninstalltest:
 test_pre:
 	. $(VENV)/activate; python3 setup.py check -rms
 
+test_smoke:
+	. $(VENV)/activate; pytest -m smoke -s -v tests/
+
 # The tests requires access to the docker socket
 test: test_pre
-	. $(VENV)/activate; pytest -s -v tests/
+	. $(VENV)/activate; pytest -m 'not smoke' -s -v tests/
 
 include Makefile.venv

@@ -1,4 +1,5 @@
 import unittest
+import pytest
 import os
 import wget
 from libvirt_provider.utils.io import remove as remove_file
@@ -28,6 +29,7 @@ from libvirt_provider.instance.create import create
 from libvirt_provider.instance.remove import remove
 
 
+@pytest.mark.smoke
 class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         user_base = "qemu"

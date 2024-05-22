@@ -1,4 +1,5 @@
 import unittest
+import pytest
 import os
 from libvirt_provider.utils.io import (
     join,
@@ -30,8 +31,7 @@ from .utils.job import run
 current_dir = os.path.abspath(os.path.dirname(__file__))
 
 
-class TestContext:
-
+class LibvirtSetupContext:
     def __init__(self):
         self.init_done = False
 
@@ -132,9 +132,9 @@ class TestContext:
             assert remove(self.image)
 
 
+@pytest.mark.smoke
 class TestLibvirtRemote(unittest.IsolatedAsyncioTestCase):
-
-    context = TestContext()
+    context = LibvirtSetupContext()
 
     async def asyncSetUp(self):
         await self.context.setUp()
