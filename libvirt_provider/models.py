@@ -110,18 +110,23 @@ class LibvirtDriver:
             return False
         return False
 
-    def create(self, name, disk_image_path, template_path=None, **kwargs):
+    def create(
+        self, name, disk_image_path, template_path=None, create_flags=0, **kwargs
+    ):
         if "memory_size" in kwargs:
             kwargs["memory_size"] = self._prepare_memory(kwargs["memory_size"])
 
         if not template_path:
-            created_id = self._create(
+            created_id = self._define(
                 name=name, disk_image_path=disk_image_path, **kwargs
             )
         else:
-            created_id = self._create_from_template(
+            created_id = self._define_from_template(
                 name, template_path, disk_image_path=disk_image_path, **kwargs
             )
+
+        created_id = self._create()
+
         if not created_id:
             return False
         return self.get(created_id)
@@ -132,7 +137,7 @@ class LibvirtDriver:
             return None
         return jinja2.Template(template_content)
 
-    def _create_from_template(self, name, path, **kwargs):
+    def _define_from_template(self, name, path, **kwargs):
         if ".j2" in path:
             template_content = self._load_jinja_template(path)
             if not template_content:
@@ -154,12 +159,12 @@ class LibvirtDriver:
 
         if not xml_desc:
             return None
-        domain = self._create_xml(xml_desc)
+        domain = self._define_xml(xml_desc)
         if domain:
             return domain.UUIDString()
         return None
 
-    def _create(
+    def _define(
         self,
         domain_type="qemu",
         name=None,
@@ -202,10 +207,10 @@ class LibvirtDriver:
           </devices>
         </domain>
         """
-        domain = self._create_xml(xml_desc)
+        domain = self._define_xml(xml_desc)
         if not domain:
             return None
-        return domain.UUIDString()
+        return domain
 
     def _prepare_memory(self, memory_size):
         # memory_size is interpreted as KiB when passed to libvirt, allow for conversion from multiple units
@@ -252,8 +257,15 @@ class LibvirtDriver:
             expanded_memory_size = int(memory_size)
         return expanded_memory_size
 
-    def _create_xml(self, xml):
-        return self._conn.createXML(xml)
+    def _define_xml(self, xml, flags=0):
+        """Define a domain from an XML description and returns that domain"""
+        return self._conn.defineXMLWithFlags(xml, flags)
+
+    def _create_xml(self, xml, flags=0):
+        return self._conn.createXML(xml, flags)
+
+    def _create(self, domain, flags=0):
+        return self._conn.createWithFlags(domain, flags)
 
     def show(self, node_id):
         return self.get(node_id)
