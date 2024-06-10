@@ -1,6 +1,7 @@
 import libvirt
 import uuid
 import jinja2
+import re
 from libvirt_provider.utils.io import load, load_json
 
 
@@ -60,6 +61,17 @@ def auth_callback(creds, callback_data):
 
 
 class LibvirtDriver:
+    STATE_MAP = {
+        0: "no state",
+        1: "running",
+        2: "blocked",
+        3: "paused",
+        4: "shutting down",
+        5: "shut off",
+        6: "crashed",
+        7: "suspended",
+    }
+
     def __init__(self, *args, open_uri=None, **kwargs):
         if not open_uri:
             self._open_uri = "qemu:///session"
@@ -117,19 +129,17 @@ class LibvirtDriver:
             kwargs["memory_size"] = self._prepare_memory(kwargs["memory_size"])
 
         if not template_path:
-            created_id = self._define(
+            instance_id = self._define_instance(
                 name=name, disk_image_path=disk_image_path, **kwargs
             )
         else:
-            created_id = self._define_from_template(
+            instance_id = self._define_instance_from_template(
                 name, template_path, disk_image_path=disk_image_path, **kwargs
             )
-
-        created_id = self._create()
-
-        if not created_id:
+        if not instance_id:
             return False
-        return self.get(created_id)
+
+        return self.get(instance_id)
 
     def _load_jinja_template(self, path):
         template_content = load(path)
@@ -137,7 +147,7 @@ class LibvirtDriver:
             return None
         return jinja2.Template(template_content)
 
-    def _define_from_template(self, name, path, **kwargs):
+    def _define_instance_from_template(self, name, path, **kwargs):
         if ".j2" in path:
             template_content = self._load_jinja_template(path)
             if not template_content:
@@ -164,7 +174,7 @@ class LibvirtDriver:
             return domain.UUIDString()
         return None
 
-    def _define(
+    def _define_instance(
         self,
         domain_type="qemu",
         name=None,
@@ -210,7 +220,7 @@ class LibvirtDriver:
         domain = self._define_xml(xml_desc)
         if not domain:
             return None
-        return domain
+        return domain.UUIDString()
 
     def _prepare_memory(self, memory_size):
         # memory_size is interpreted as KiB when passed to libvirt, allow for conversion from multiple units
@@ -259,13 +269,7 @@ class LibvirtDriver:
 
     def _define_xml(self, xml, flags=0):
         """Define a domain from an XML description and returns that domain"""
-        return self._conn.defineXMLWithFlags(xml, flags)
-
-    def _create_xml(self, xml, flags=0):
-        return self._conn.createXML(xml, flags)
-
-    def _create(self, domain, flags=0):
-        return self._conn.createWithFlags(domain, flags)
+        return self._conn.defineXMLFlags(xml, flags)
 
     def show(self, node_id):
         return self.get(node_id)
@@ -275,9 +279,9 @@ class LibvirtDriver:
         if not domain:
             return False
         try:
-            domain.resume()
+            domain.create()
         except libvirt.libvirtError as err:
-            print("Failed to resume domain: {} - {}".format(node_id, err))
+            print("Failed to start domain: {} - {}".format(node_id, err))
             return False
         return True
 
@@ -286,7 +290,13 @@ class LibvirtDriver:
         if not domain:
             return False
         try:
-            return domain.state()
+            libvirt_state = domain.state()
+            if libvirt_state[0] not in LibvirtDriver.STATE_MAP:
+                raise Exception(
+                    "Unknown state returned by libvirt: {}".format(libvirt_state[0])
+                )
+                return False
+            return LibvirtDriver.STATE_MAP[libvirt_state[0]]
         except libvirt.libvirtError as err:
             print("Failed to get domain state: {} - {}".format(node_id, err))
             return False
@@ -297,7 +307,7 @@ class LibvirtDriver:
         if not domain:
             return False
         try:
-            domain.shutdown()
+            domain.destroy()
         except libvirt.libvirtError as err:
             print("Failed to shutdown domain: {} - {}".format(node_id, err))
             return False
@@ -308,16 +318,22 @@ class LibvirtDriver:
         if not domain:
             return False
         try:
-            domain.destroy()
+            domain.undefine()
         except libvirt.libvirtError as err:
-            print("Failed to destroy domain: {} - {}".format(node_id, err))
+            print("Failed to undefine domain: {} - {}".format(node_id, err))
             return False
         return True
 
-    def ls(self):
+    def ls(self, regex=None):
         domains = self._conn.listAllDomains()
         if domains is None or not isinstance(domains, (tuple, set, list)):
             return False
+        if regex:
+            return [
+                self.get(domain.UUIDString())
+                for domain in domains
+                if re.search(regex, domain.name())
+            ]
         return [self.get(domain.UUIDString()) for domain in domains]
 
 
