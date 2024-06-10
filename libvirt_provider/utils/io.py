@@ -78,10 +78,13 @@ def load(path, mode="r", readlines=False, opener=None):
     return False
 
 
-def remove(path):
+def remove(path, recursive=False):
     try:
         if os.path.exists(path):
-            os.remove(path)
+            if recursive:
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
             return True
     except Exception as err:
         print("Failed to remove file: {} - {}".format(path, err))
