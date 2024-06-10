@@ -2,18 +2,11 @@ import unittest
 import pytest
 import os
 import random
-from gen_vm_image.cli.build_image import build_architecture
 from libvirt_provider.utils.io import (
     copy,
     join,
     exists,
-    makedirs,
     load_json,
-    removedirs,
-)
-from libvirt_provider.utils.user import (
-    find_user_with_username,
-    find_group_with_groupname,
 )
 from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.models import Node
@@ -25,55 +18,12 @@ from libvirt_provider.instance.get import get
 from libvirt_provider.instance.ls import ls
 from libvirt_provider.instance.start import start
 from libvirt_provider.instance.state import state
-
-
-class LibvirtSetupContext:
-    def __init__(self):
-        self.init_done = False
-        self.tests_done = 0
-
-    async def setUp(self, num_tests=1):
-        if self.init_done:
-            return
-
-        self.num_tests = num_tests
-        user_base = "qemu"
-        self.user = find_user_with_username(user_base)
-        assert self.user is not False
-        self.group = find_group_with_groupname(user_base)
-        assert self.group is not False
-
-        self.architecture = "x86_64"
-        self.image_version = "12"
-        self.name = f"libvirt-{self.architecture}"
-        # Note, a properly SELinux labelled directory is required when SELinux is enabled
-        self.images_dir = join("tests", "images", self.architecture)
-        if not exists(self.images_dir):
-            assert makedirs(self.images_dir)
-
-        architecture_path = join(
-            "tests", "smoke", "res", "gen-vm-image", "architecture.yml"
-        )
-        assert exists(architecture_path)
-        self.image = join(self.images_dir, f"{self.name}-{self.image_version}.qcow2")
-        build_architecture(architecture_path, self.images_dir, False)
-        assert exists(self.image)
-
-        self.node_options_path = join(
-            "tests", "smoke", "res", "node_options", f"{self.architecture}.json"
-        )
-        assert exists(self.node_options_path)
-        self.init_done = True
-
-    async def tearDown(self):
-        # TODO, only run when all tests are done
-        assert removedirs(self.images_dir, recursive=True)
-        self.client.close()
+from .context import TestContext
 
 
 @pytest.mark.smoke
 class TestLibvirt(unittest.IsolatedAsyncioTestCase):
-    context = LibvirtSetupContext()
+    context = TestContext()
 
     async def asyncSetUp(self):
         await self.context.setUp()
@@ -101,7 +51,11 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         found, test_nodes = await ls(self.client, regex=search_regex)
         self.assertTrue(found)
         self.assertTrue(len(test_nodes["instances"]) == 0)
-        await self.context.tearDown()
+        self.client.close()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.context.tearDown()
 
     async def test_create_node(self):
         test_name = f"create-test-{self.seed}"
