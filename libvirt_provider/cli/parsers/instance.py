@@ -6,12 +6,24 @@ def valid_create_group(parser):
     create_group(parser)
 
 
+def valid_list_group(parser):
+    ls_group(parser)
+
+
 def valid_remove_group(parser):
     remove_group(parser)
 
 
-def valid_list_group(parser):
-    ls_group(parser)
+def valid_show_group(parser):
+    show_group(parser)
+
+
+def valid_start_group(parser):
+    start_group(parser)
+
+
+def valid_stop_group(parser):
+    stop_group(parser)
 
 
 def create_group(parser):
@@ -145,6 +157,24 @@ def show_group(parser):
         "id",
         action=PositionalArgumentsAction,
         help="The id of the instance to be shown",
+    )
+
+
+def start_group(parser):
+    instance_group = parser.add_argument_group(title="Instance start arguments")
+    instance_group.add_argument(
+        "id",
+        action=PositionalArgumentsAction,
+        help="The id of the instance to be started",
+    )
+
+
+def stop_group(parser):
+    instance_group = parser.add_argument_group(title="Instance stop arguments")
+    instance_group.add_argument(
+        "id",
+        action=PositionalArgumentsAction,
+        help="The id of the instance to be stopped",
     )
 
 
