@@ -1,5 +1,6 @@
 import shelve
-from libvirt_provider.utils.io import acquire_lock, release_lock, remove
+from libvirt_provider.utils.io import acquire_lock, release_lock, exists
+from libvirt_provider.utils.io import remove as fs_remove
 
 
 class Pool:
@@ -52,10 +53,12 @@ class Pool:
         if not lock:
             return False
         try:
-            if not remove(self._database_path):
-                return False
-            if not remove(self._lock_path):
-                return False
+            if exists(self._database_path):
+                if not fs_remove(self._database_path):
+                    return False
+            if exists(self._lock_path):
+                if not fs_remove(self._lock_path):
+                    return False
         except Exception as err:
             print(err)
             return False
