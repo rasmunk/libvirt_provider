@@ -9,12 +9,12 @@ from libvirt_provider.pool import Pool
 from libvirt_provider.models import Node
 from libvirt_provider.instance.create import create
 from libvirt_provider.instance.remove import remove
-from .context import TestContext
+from .context import LibvirtTestContext
 
 
 @pytest.mark.smoke
 class TestLibvirtPool(unittest.IsolatedAsyncioTestCase):
-    context = TestContext()
+    context = LibvirtTestContext()
 
     async def asyncSetUp(self):
         await self.context.setUp()

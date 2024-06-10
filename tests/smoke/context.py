@@ -11,7 +11,7 @@ from libvirt_provider.utils.io import (
 )
 
 
-class TestContext:
+class LibvirtTestContext:
     def __init__(self):
         self.init_done = False
 

@@ -18,12 +18,12 @@ from libvirt_provider.instance.get import get
 from libvirt_provider.instance.ls import ls
 from libvirt_provider.instance.start import start
 from libvirt_provider.instance.state import state
-from .context import TestContext
+from .context import LibvirtTestContext
 
 
 @pytest.mark.smoke
 class TestLibvirt(unittest.IsolatedAsyncioTestCase):
-    context = TestContext()
+    context = LibvirtTestContext()
 
     async def asyncSetUp(self):
         await self.context.setUp()
