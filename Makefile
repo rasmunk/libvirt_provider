@@ -15,6 +15,7 @@ endif
 
 clean: distclean venv-clean
 	rm -fr .env
+	rm -fr *.lock
 	rm -fr .pytest_cache
 	rm -fr tests/__pycache__
 
