@@ -1,300 +1,346 @@
-# import unittest
-# import pytest
-# import os
-# import wget
-# from libvirt_provider.utils.io import remove as remove_file
-# from libvirt_provider.utils.io import (
-#     copy,
-#     join,
-#     exists,
-#     makedirs,
-#     load_json,
-#     chown,
-#     chmod,
-#     get_uid,
-#     get_gid,
-#     access,
-# )
-# from libvirt_provider.utils.user import (
-#     lookup_uid,
-#     lookup_gid,
-#     find_user_with_username,
-#     find_group_with_groupname,
-# )
-# from libvirt_provider.defaults import LIBVIRT
-# from libvirt_provider.models import Node
-# from libvirt_provider.client import new_client
-# from libvirt_provider.instance.create import create
-# from libvirt_provider.instance.remove import remove
-# from libvirt_provider.instance.stop import stop
-# from libvirt_provider.instance.get import get
-# from libvirt_provider.instance.ls import ls
-# from libvirt_provider.instance.state import state
-
-# @pytest.mark.smoke
-# class TestLibvirt(unittest.IsolatedAsyncioTestCase):
-#     async def asyncSetUp(self):
-#         user_base = "qemu"
-#         self.user = find_user_with_username(user_base)
-#         self.assertIsNot(self.user, False)
-#         self.group = find_group_with_groupname(user_base)
-#         self.assertIsNot(self.group, False)
-
-#         self.architecture = "x86_64"
-#         self.name = f"libvirt-{self.architecture}"
-#         # Note, a properly SELinux labelled directory is required when SELinux is enabled
-#         # self.images_dir = join(
-#         #    os.sep, "var", "lib", "libvirt", "images", self.architecture
-#         # )
-#         self.images_dir = join("tests", "images", self.architecture)
-#         if not exists(self.images_dir):
-#             self.assertTrue(makedirs(self.images_dir))
-
-#         self.image = join(self.images_dir, f"{self.name}-Rocky-9.qcow2")
-#         if not exists(self.image):
-#             # Download the image
-#             url = f"https://download.rockylinux.org/pub/rocky/9/images/{self.architecture}/Rocky-9-GenericCloud-Base.latest.{self.architecture}.qcow2"
-#             try:
-#                 print(f"Downloading image: {url} for testing")
-#                 wget.download(url, self.image)
-#             except Exception as err:
-#                 print(f"Failed to download image: {url} - {err}")
-#                 self.assertFalse(True)
-#         self.assertTrue(exists(self.image))
-
-#         open_uri = "qemu:///session"
-#         self.client = new_client(LIBVIRT, open_uri=open_uri)
-#         for i in range(6):
-#             test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
-#             if not exists(test_image):
-#                 self.assertTrue(copy(self.image, test_image))
-#             self.assertTrue(exists(test_image))
-#             # Ensure correct ownership on image file
-#             existing_uid, existing_gid = get_uid(test_image), get_gid(test_image)
-#             self.assertIsNot(existing_uid, False)
-#             self.assertIsNot(existing_gid, False)
-#             if existing_uid != qemu_uid or existing_gid != qemu_gid:
-#                 self.assertTrue(chown(test_image, qemu_uid, qemu_gid))
-#             if not access(test_image, os.R_OK | os.X_OK):
-#                 self.assertTrue(chmod(test_image, 0o755))
-#             self.assertTrue(access(test_image, os.R_OK | os.X_OK))
-
-#     async def asyncTearDown(self):
-#         for i in range(6):
-#             test_image = join(self.images_dir, f"{self.name}-Rocky-9-{i}.qcow2")
-#             self.assertTrue(remove_file(test_image))
-#             self.assertFalse(exists(test_image))
-#         self.client.close()
-
-#     async def test_create_node(self):
-#         test_image = os.path.abspath(
-#             join(self.images_dir, f"{self.name}-Rocky-9-0.qcow2")
-#         )
-#         # Load architecture node_options
-#         node_options_path = join(
-#             "tests", "res", "node_options", f"{self.architecture}.json"
-#         )
-#         loaded_node_options = load_json(node_options_path)
-#         node_options = {
-#             "name": "test-1",
-#             "disk_image_path": test_image,
-#             "memory_size": "2048",
-#             **loaded_node_options,
-#         }
-#         created, created_response = await create(self.client, **node_options)
-#         self.assertTrue(created)
-#         self.assertIn("instance", created_response)
-#         self.assertIsNotNone(created_response["instance"])
-#         node = created_response["instance"]
-
-#         self.assertIsNotNone(node)
-#         self.assertIsInstance(node, Node)
-#         removed, remove_response = await remove(self.client, node.id)
-#         self.assertTrue(removed)
-
-#     async def test_stop_node(self):
-#         test_image = os.path.abspath(
-#             join(self.images_dir, f"{self.name}-Rocky-9-1.qcow2")
-#         )
-#         # Load architecture node_options
-#         node_options_path = join(
-#             "tests", "res", "node_options", f"{self.architecture}.json"
-#         )
-#         loaded_node_options = load_json(node_options_path)
-#         self.assertIsInstance(loaded_node_options, dict)
-#         node_options = {
-#             "name": "test-2",
-#             "disk_image_path": test_image,
-#             "memory_size": "2048",
-#             **loaded_node_options,
-#         }
-
-#         created, created_response = await create(self.client, **node_options)
-#         self.assertTrue(created)
-#         self.assertIn("instance", created_response)
-#         self.assertIsNotNone(created_response["instance"])
-#         new_node = created_response["instance"]
-
-#         self.assertIsNotNone(new_node)
-#         self.assertIsInstance(new_node, Node)
-
-#         get_success, get_response = await get(self.client, new_node.id)
-#         self.assertTrue(get_success)
-#         self.assertIn("instance", get_response)
-#         self.assertIsNotNone(get_response["instance"])
-#         node = get_response["instance"]
-
-#         self.assertIsNotNone(node)
-#         self.assertIsInstance(node, Node)
-#         self.assertEqual(node.id, new_node.id)
-#         stopped, stopped_response = await stop(self.client, node.id)
-#         self.assertTrue(stopped)
-
-#         state_success, state_response = await state(self.client, node.id)
-#         self.assertTrue(state_success)
-#         self.assertIn("state", state_response)
-#         self.assertIsNotNone(state_response["state"])
-#         node_state = state_response["state"]
-#         self.assertIsNot(node_state, False)
-#         # TODO, check that the state is actually running
-
-#         removed_success, remove_response = await remove(self.client, node.id)
-#         self.assertTrue(removed_success)
-
-#         get1_success, get1_response = await get(self.client, node.id)
-#         self.assertFalse(get1_success)
-
-#     async def test_create_node_with_xml_template(self):
-#         test_image = os.path.abspath(
-#             join(self.images_dir, f"{self.name}-Rocky-9-2.qcow2")
-#         )
-#         name = "test-3"
-#         node_options = {
-#             "name": name,
-#             "disk_image_path": test_image,
-#             "template_path": join("tests", "res", "templates", "libvirt.xml"),
-#         }
-#         create_success, create_response = await create(self.client, **node_options)
-#         self.assertTrue(create_success)
-#         self.assertIn("instance", create_response)
-#         self.assertIsNotNone(create_response["instance"])
-#         node = create_response["instance"]
-
-#         self.assertIsNotNone(node)
-#         self.assertIsInstance(node, Node)
-#         removed_success, remove_response = await remove(self.client, node.id)
-#         self.assertTrue(removed_success)
-
-#     async def test_create_node_with_jinja_template(self):
-#         test_image = os.path.abspath(
-#             join(self.images_dir, f"{self.name}-Rocky-9-3.qcow2")
-#         )
-#         name = "test-4"
-#         node_options = {
-#             "name": name,
-#             "template_path": join("tests", "res", "templates", "libvirt.j2"),
-#             "domain_type": "qemu",
-#             "disk_device_type": "file",
-#             "disk_driver_type": "qcow2",
-#             "disk_image_path": test_image,
-#             "disk_target_dev": "hda",
-#             "disk_target_bus": "ide",
-#             "memory_size": "1024MiB",
-#             "num_vcpus": 1,
-#             "cpu_architecture": self.architecture,
-#             "machine": "pc",
-#             "serial_type": "pty",
-#             "serial_type_target_port": 0,
-#             "console_type": "pty",
-#         }
-#         create_success, create_response = await create(self.client, **node_options)
-#         self.assertTrue(create_success)
-#         self.assertIn("instance", create_response)
-#         self.assertIsNotNone(create_response["instance"])
-#         node = create_response["instance"]
-#         self.assertIsNotNone(node)
-#         self.assertIsInstance(node, Node)
-
-#         removed_success, remove_response = await remove(self.client, node.id)
-#         self.assertTrue(removed_success)
-
-#     async def test_list_nodes(self):
-#         list_success, list_response = await ls(self.client)
-#         self.assertTrue(list_success)
-#         self.assertIn("instances", list_response)
-#         self.assertIsNotNone(list_response["instances"])
-#         nodes = list_response["instances"]
-
-#         self.assertIsNotNone(nodes)
-#         self.assertIsInstance(nodes, list)
-#         self.assertTrue(len(nodes) == 0)
-
-#         test_image_1 = os.path.abspath(
-#             join(self.images_dir, f"{self.name}-Rocky-9-4.qcow2")
-#         )
-#         node_options_1 = {
-#             "name": "test-5",
-#             "disk_image_path": test_image_1,
-#             "memory_size": "2048",
-#         }
-#         create_success1, create_response1 = await create(self.client, **node_options_1)
-#         self.assertTrue(create_success1)
-#         self.assertIn("instance", create_response1)
-#         self.assertIsNotNone(create_response1["instance"])
-#         node1 = create_response1["instance"]
-#         self.assertIsNotNone(node1)
-#         self.assertIsInstance(node1, Node)
-
-#         list_success1, list_response1 = await ls(self.client)
-#         self.assertTrue(list_success1)
-#         self.assertIn("instances", list_response1)
-#         self.assertIsNotNone(list_response1["instances"])
-#         nodes1 = list_response1["instances"]
-#         self.assertIsNotNone(nodes1)
-#         self.assertIsInstance(nodes1, list)
-#         self.assertTrue(len(nodes1) == 1)
-#         self.assertEqual(nodes1[0].id, node1.id)
-
-#         test_image_2 = os.path.abspath(
-#             join(self.images_dir, f"{self.name}-Rocky-9-5.qcow2")
-#         )
-
-#         node_options_2 = {
-#             "name": "test-6",
-#             "disk_image_path": test_image_2,
-#             "memory_size": "2048",
-#         }
-#         create_success2, create_response2 = await create(self.client, **node_options_2)
-#         self.assertTrue(create_success2)
-#         self.assertIn("instance", create_response2)
-#         self.assertIsNotNone(create_response2["instance"])
-#         node2 = create_response2["instance"]
-#         self.assertIsNotNone(node2)
-#         self.assertIsInstance(node2, Node)
-
-#         list_success2, list_response2 = await ls(self.client)
-#         self.assertTrue(list_response2)
-#         self.assertIn("instances", list_response2)
-#         self.assertIsNotNone(list_response2["instances"])
-#         nodes2 = list_response2["instances"]
-
-#         self.assertIsNotNone(nodes2)
-#         self.assertIsInstance(nodes2, list)
-#         self.assertTrue(len(nodes2) == 2)
-
-#         for node in nodes2:
-#             removed_success, response = await remove(self.client, node.id)
-#             self.assertTrue(removed_success)
-
-#         list_success3, list_response3 = await ls(self.client)
-#         self.assertTrue(list_response3)
-#         self.assertIn("instances", list_response3)
-#         self.assertIsNotNone(list_response3["instances"])
-#         nodes3 = list_response3["instances"]
-#         self.assertIsNotNone(nodes3)
-#         self.assertIsInstance(nodes3, list)
-#         self.assertTrue(len(nodes3) == 0)
+import unittest
+import pytest
+import os
+import random
+from gen_vm_image.cli.build_image import build_architecture
+from libvirt_provider.utils.io import (
+    copy,
+    join,
+    exists,
+    makedirs,
+    load_json,
+    removedirs,
+)
+from libvirt_provider.utils.user import (
+    find_user_with_username,
+    find_group_with_groupname,
+)
+from libvirt_provider.defaults import LIBVIRT
+from libvirt_provider.models import Node
+from libvirt_provider.client import new_client
+from libvirt_provider.instance.create import create
+from libvirt_provider.instance.remove import remove
+from libvirt_provider.instance.stop import stop
+from libvirt_provider.instance.get import get
+from libvirt_provider.instance.ls import ls
+from libvirt_provider.instance.start import start
+from libvirt_provider.instance.state import state
 
 
-# if __name__ == "__main__":
-#     unittest.main()
+class LibvirtSetupContext:
+    def __init__(self):
+        self.init_done = False
+        self.tests_done = 0
+
+    async def setUp(self, num_tests=1):
+        if self.init_done:
+            return
+
+        self.num_tests = num_tests
+        user_base = "qemu"
+        self.user = find_user_with_username(user_base)
+        assert self.user is not False
+        self.group = find_group_with_groupname(user_base)
+        assert self.group is not False
+
+        self.architecture = "x86_64"
+        self.image_version = "12"
+        self.name = f"libvirt-{self.architecture}"
+        # Note, a properly SELinux labelled directory is required when SELinux is enabled
+        self.images_dir = join("tests", "images", self.architecture)
+        if not exists(self.images_dir):
+            assert makedirs(self.images_dir)
+
+        architecture_path = join(
+            "tests", "smoke", "res", "gen-vm-image", "architecture.yml"
+        )
+        assert exists(architecture_path)
+        self.image = join(self.images_dir, f"{self.name}-{self.image_version}.qcow2")
+        build_architecture(architecture_path, self.images_dir, False)
+        assert exists(self.image)
+
+        self.node_options_path = join(
+            "tests", "smoke", "res", "node_options", f"{self.architecture}.json"
+        )
+        assert exists(self.node_options_path)
+        self.init_done = True
+
+    async def tearDown(self):
+        # TODO, only run when all tests are done
+        assert removedirs(self.images_dir, recursive=True)
+        self.client.close()
+
+
+@pytest.mark.smoke
+class TestLibvirt(unittest.IsolatedAsyncioTestCase):
+    context = LibvirtSetupContext()
+
+    async def asyncSetUp(self):
+        await self.context.setUp()
+
+        self.seed = str(random.random())[2:10]
+        self.test_image = os.path.realpath(f"{self.context.image}-{self.seed}")
+        self.assertTrue(copy(self.context.image, self.test_image))
+        self.assertTrue(exists(self.test_image))
+        open_uri = "qemu:///session"
+        self.client = new_client(LIBVIRT, open_uri=open_uri)
+
+    async def asyncTearDown(self):
+        # Cleanup the started nodes
+        search_regex = f".*test-{self.seed}.*"
+        found, test_nodes = await ls(self.client, regex=search_regex)
+        for node in test_nodes["instances"]:
+            stopped, result = await stop(self.client, node.id)
+            self.assertTrue(stopped)
+
+        self.assertTrue(found)
+        for node in test_nodes["instances"]:
+            removed, result = await remove(self.client, node.id)
+            self.assertTrue(removed)
+
+        found, test_nodes = await ls(self.client, regex=search_regex)
+        self.assertTrue(found)
+        self.assertTrue(len(test_nodes["instances"]) == 0)
+        await self.context.tearDown()
+
+    async def test_create_node(self):
+        test_name = f"create-test-{self.seed}"
+        loaded_node_options = load_json(self.context.node_options_path)
+        node_options = {
+            "name": test_name,
+            "disk_image_path": self.test_image,
+            "memory_size": "1024MiB",
+            **loaded_node_options,
+        }
+        created, created_response = await create(self.client, **node_options)
+        self.assertTrue(created)
+        self.assertIn("instance", created_response)
+        self.assertIsNotNone(created_response["instance"])
+        node = created_response["instance"]
+
+        # Check that the node is created and not started
+        state_success, state_response = await state(self.client, node.id)
+        self.assertTrue(state_success)
+        self.assertIn("state", state_response)
+        self.assertIsNotNone(state_response["state"])
+        node_state = state_response["state"]
+        self.assertIsNot(node_state, False)
+        self.assertEqual(node_state, "shut off")
+
+        # Remove the node
+        removed, remove_response = await remove(self.client, node.id)
+        self.assertTrue(removed)
+
+    async def test_start_node(self):
+        test_name = f"start-test-{self.seed}"
+        # Load architecture node_options
+        loaded_node_options = load_json(self.context.node_options_path)
+        self.assertIsInstance(loaded_node_options, dict)
+        node_options = {
+            "name": test_name,
+            "disk_image_path": self.test_image,
+            "memory_size": "1024MiB",
+            **loaded_node_options,
+        }
+
+        created, created_response = await create(self.client, **node_options)
+        self.assertTrue(created)
+        self.assertIn("instance", created_response)
+        self.assertIsNotNone(created_response["instance"])
+        new_node = created_response["instance"]
+        self.assertIsNotNone(new_node)
+        self.assertIsInstance(new_node, Node)
+
+        state_success, state_response = await state(self.client, new_node.id)
+        self.assertTrue(state_success)
+        self.assertIn("state", state_response)
+        self.assertIsNotNone(state_response["state"])
+        node_state = state_response["state"]
+        self.assertIsNot(node_state, False)
+        self.assertEqual(node_state, "shut off")
+
+        started, started_response = await start(self.client, new_node.id)
+        self.assertTrue(started)
+
+        state_success, state_response = await state(self.client, new_node.id)
+        self.assertTrue(state_success)
+        self.assertIn("state", state_response)
+        self.assertIsNotNone(state_response["state"])
+        node_state = state_response["state"]
+        self.assertIsNot(node_state, False)
+        self.assertEqual(node_state, "running")
+
+    async def test_stop_node(self):
+        test_name = f"stop-test-{self.seed}"
+        # Load architecture node_options
+        loaded_node_options = load_json(self.context.node_options_path)
+        self.assertIsInstance(loaded_node_options, dict)
+        node_options = {
+            "name": test_name,
+            "disk_image_path": self.test_image,
+            "memory_size": "1024MiB",
+            **loaded_node_options,
+        }
+
+        created, created_response = await create(self.client, **node_options)
+        self.assertTrue(created)
+        self.assertIn("instance", created_response)
+        self.assertIsNotNone(created_response["instance"])
+        new_node = created_response["instance"]
+        self.assertIsNotNone(new_node)
+        self.assertIsInstance(new_node, Node)
+
+        started, started_response = await start(self.client, new_node.id)
+        self.assertTrue(started)
+
+        get_success, get_response = await get(self.client, new_node.id)
+        self.assertTrue(get_success)
+        self.assertIn("instance", get_response)
+        self.assertIsNotNone(get_response["instance"])
+        node = get_response["instance"]
+
+        self.assertIsNotNone(node)
+        self.assertIsInstance(node, Node)
+        self.assertEqual(node.id, new_node.id)
+        stopped, stopped_response = await stop(self.client, node.id)
+        self.assertTrue(stopped)
+
+        state_success, state_response = await state(self.client, node.id)
+        self.assertTrue(state_success)
+        self.assertIn("state", state_response)
+        self.assertIsNotNone(state_response["state"])
+        node_state = state_response["state"]
+        self.assertIsNot(node_state, False)
+        self.assertEqual(node_state, "shut off")
+
+        removed_success, remove_response = await remove(self.client, node.id)
+        self.assertTrue(removed_success)
+
+        get1_success, get1_response = await get(self.client, node.id)
+        self.assertFalse(get1_success)
+
+    async def test_create_node_with_xml_template(self):
+        test_name = f"create-xml-test-{self.seed}"
+        node_options = {
+            "name": test_name,
+            "disk_image_path": self.test_image,
+            "template_path": join("tests", "res", "templates", "libvirt.xml"),
+        }
+        create_success, create_response = await create(self.client, **node_options)
+        self.assertTrue(create_success)
+        self.assertIn("instance", create_response)
+        self.assertIsNotNone(create_response["instance"])
+        node = create_response["instance"]
+
+        self.assertIsNotNone(node)
+        self.assertIsInstance(node, Node)
+        removed_success, remove_response = await remove(self.client, node.id)
+        self.assertTrue(removed_success)
+
+    async def test_create_node_with_jinja_template(self):
+        test_name = f"create-jinja-test-{self.seed}"
+        node_options = {
+            "name": test_name,
+            "template_path": join("tests", "res", "templates", "libvirt.j2"),
+            "domain_type": "qemu",
+            "disk_device_type": "file",
+            "disk_driver_name": "qemu",
+            "disk_driver_type": "qcow2",
+            "disk_image_path": self.test_image,
+            "disk_target_dev": "hda",
+            "disk_target_bus": "ide",
+            "memory_size": "1024MiB",
+            "num_vcpus": 1,
+            "cpu_architecture": self.context.architecture,
+            "cpu_mode": "host-model",
+            "machine": "pc",
+            "serial_type": "pty",
+            "serial_type_target_port": 0,
+            "console_type": "pty",
+        }
+        create_success, create_response = await create(self.client, **node_options)
+        self.assertTrue(create_success)
+        self.assertIn("instance", create_response)
+        self.assertIsNotNone(create_response["instance"])
+        node = create_response["instance"]
+        self.assertIsNotNone(node)
+        self.assertIsInstance(node, Node)
+
+        removed_success, remove_response = await remove(self.client, node.id)
+        self.assertTrue(removed_success)
+
+    async def test_list_nodes(self):
+        test_name = f"list-test-{self.seed}"
+        search_regex = f".*{test_name}.*"
+        list_success, list_response = await ls(self.client, regex=search_regex)
+        self.assertTrue(list_success)
+        self.assertIn("instances", list_response)
+        self.assertIsNotNone(list_response["instances"])
+        nodes = list_response["instances"]
+
+        self.assertIsNotNone(nodes)
+        self.assertIsInstance(nodes, list)
+        self.assertTrue(len(nodes) == 0)
+
+        node_options_1 = {
+            "name": f"{test_name}-1",
+            "disk_image_path": self.test_image,
+            "memory_size": "1024MiB",
+        }
+        create_success1, create_response1 = await create(self.client, **node_options_1)
+        self.assertTrue(create_success1)
+        self.assertIn("instance", create_response1)
+        self.assertIsNotNone(create_response1["instance"])
+        node1 = create_response1["instance"]
+        self.assertIsNotNone(node1)
+        self.assertIsInstance(node1, Node)
+
+        list_success1, list_response1 = await ls(self.client, regex=search_regex)
+        self.assertTrue(list_success1)
+        self.assertIn("instances", list_response1)
+        self.assertIsNotNone(list_response1["instances"])
+        nodes1 = list_response1["instances"]
+        self.assertIsNotNone(nodes1)
+        self.assertIsInstance(nodes1, list)
+        self.assertTrue(len(nodes1) == 1)
+        self.assertEqual(nodes1[0].id, node1.id)
+
+        node_options_2 = {
+            "name": f"{test_name}-2",
+            "disk_image_path": self.test_image,
+            "memory_size": "1024MiB",
+        }
+        create_success2, create_response2 = await create(self.client, **node_options_2)
+        self.assertTrue(create_success2)
+        self.assertIn("instance", create_response2)
+        self.assertIsNotNone(create_response2["instance"])
+        node2 = create_response2["instance"]
+        self.assertIsNotNone(node2)
+        self.assertIsInstance(node2, Node)
+
+        list_success2, list_response2 = await ls(self.client, regex=search_regex)
+        self.assertTrue(list_response2)
+        self.assertIn("instances", list_response2)
+        self.assertIsNotNone(list_response2["instances"])
+        nodes2 = list_response2["instances"]
+
+        self.assertIsNotNone(nodes2)
+        self.assertIsInstance(nodes2, list)
+        self.assertTrue(len(nodes2) == 2)
+
+        for node in nodes2:
+            removed_success, response = await remove(self.client, node.id)
+            self.assertTrue(removed_success)
+
+        list_success3, list_response3 = await ls(self.client, regex=search_regex)
+        self.assertTrue(list_response3)
+        self.assertIn("instances", list_response3)
+        self.assertIsNotNone(list_response3["instances"])
+        nodes3 = list_response3["instances"]
+        self.assertIsNotNone(nodes3)
+        self.assertIsInstance(nodes3, list)
+        self.assertTrue(len(nodes3) == 0)
+
+
+if __name__ == "__main__":
+    unittest.main()

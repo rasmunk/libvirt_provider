@@ -1,10 +1,9 @@
 owner: ucphhpc
 images:
   libvirt_provider_test_image:
-    name: Rocky
-    version: 9.3
-    get_url: https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
-    checksum:
-      type: sha256
-      value: 2b521fdff4e4d1a0f1a10b53579a34bba8081ce5eb08e64e3ff22289557f0cfa
+    name: libvirt-x86_64
+    version: 12
     size: 60G
+    input:
+      url: https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2
+      format: qcow2
