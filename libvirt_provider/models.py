@@ -6,10 +6,10 @@ from libvirt_provider.utils.io import load, load_json
 
 
 class Node:
-    def __init__(self, id, name, **kwargs):
+    def __init__(self, id, name, state=None, **kwargs):
         self.id = id
         self.name = name
-        self.state = None
+        self.state = state
         self.config = kwargs
 
     def print_state(self):
@@ -71,6 +71,12 @@ class LibvirtDriver:
         6: "crashed",
         7: "suspended",
     }
+    
+    @classmethod
+    def translate_state(cls, state):
+        if state not in LibvirtDriver.STATE_MAP:
+            return "unknown"
+        return LibvirtDriver.STATE_MAP[state]
 
     def __init__(self, *args, open_uri=None, **kwargs):
         if not open_uri:
@@ -108,9 +114,11 @@ class LibvirtDriver:
         domain = self._get(node_id)
         if not domain:
             return False
-        state = domain.state()
         return Node(
-            domain.UUIDString(), domain.name(), state=state, config=domain.XMLDesc()
+            domain.UUIDString(),
+            domain.name(),
+            state=self.state(node_id),
+            config=domain.XMLDesc(),
         )
 
     def _get(self, node_id):
@@ -291,12 +299,7 @@ class LibvirtDriver:
             return False
         try:
             libvirt_state = domain.state()
-            if libvirt_state[0] not in LibvirtDriver.STATE_MAP:
-                raise Exception(
-                    "Unknown state returned by libvirt: {}".format(libvirt_state[0])
-                )
-                return False
-            return LibvirtDriver.STATE_MAP[libvirt_state[0]]
+            return LibvirtDriver.translate_state(libvirt_state[0])
         except libvirt.libvirtError as err:
             print("Failed to get domain state: {} - {}".format(node_id, err))
             return False
