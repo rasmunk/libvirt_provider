@@ -14,6 +14,10 @@ def valid_remove_group(parser):
     remove_group(parser)
 
 
+def valid_purge_group(parser):
+    purge_group(parser)
+
+
 def valid_show_group(parser):
     show_group(parser)
 
@@ -148,6 +152,27 @@ def remove_group(parser):
         "id",
         action=PositionalArgumentsAction,
         help="The id of the instance to be removed",
+    )
+
+
+def purge_group(parser):
+    instance_group = parser.add_argument_group(
+        title="Arguments for purging/removing multiple instances"
+    )
+    instance_group.add_argument(
+        "-r",
+        "--regex",
+        dest="{}_regex".format(INSTANCE),
+        default=None,
+        help="Specify a regex that can be used to find the instances that should be removed",
+    )
+    instance_group.add_argument(
+        "-f",
+        "--force",
+        dest="{}_force".format(INSTANCE),
+        action="store_true",
+        default=False,
+        help="Whether instances that are running should also be stopped and removed",
     )
 
 

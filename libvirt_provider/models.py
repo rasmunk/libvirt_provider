@@ -71,7 +71,7 @@ class LibvirtDriver:
         6: "crashed",
         7: "suspended",
     }
-    
+
     @classmethod
     def translate_state(cls, state):
         if state not in LibvirtDriver.STATE_MAP:
@@ -338,6 +338,31 @@ class LibvirtDriver:
                 if re.search(regex, domain.name())
             ]
         return [self.get(domain.UUIDString()) for domain in domains]
+
+    def purge(self, domains, force=False):
+        failed_purge_nodes = []
+        purged_nodes = []
+        for domain in domains:
+            if (
+                self.state(domain.id) == "shut off"
+                or self.state(domain.id) == "no state"
+                or self.state(domain.id) == "unknown"
+                or self.state(domain.id) == "crashed"
+            ):
+                if not self.remove(domain.id):
+                    failed_purge_nodes.append(domain.id)
+                else:
+                    purged_nodes.append(domain.id)
+            else:
+                if force:
+                    if not self.stop(domain.id):
+                        failed_purge_nodes.append(domain.id)
+                        continue
+                if not self.remove(domain.id):
+                    failed_purge_nodes.append(domain.id)
+                else:
+                    purged_nodes.append(domain.id)
+        return purged_nodes, failed_purge_nodes
 
 
 class LXCDriver(LibvirtDriver):
