@@ -131,8 +131,21 @@ class LibvirtDriver:
         return False
 
     def create(
-        self, name, disk_image_path, template_path=None, create_flags=0, **kwargs
+        self,
+        name,
+        disk_image_path,
+        template_path=None,
+        template_path_nargs=None,
+        **kwargs,
     ):
+        template_path_kwargs = {}
+        if template_path_nargs:
+            for item in template_path_nargs:
+                key, value = item.split("=")
+                template_path_kwargs[key] = value
+
+        print("Extra template values: {}".format(template_path_kwargs))
+
         if "memory_size" in kwargs:
             kwargs["memory_size"] = self._prepare_memory(kwargs["memory_size"])
 
@@ -142,7 +155,11 @@ class LibvirtDriver:
             )
         else:
             instance_id = self._define_instance_from_template(
-                name, template_path, disk_image_path=disk_image_path, **kwargs
+                name,
+                template_path,
+                disk_image_path=disk_image_path,
+                **template_path_kwargs,
+                **kwargs,
             )
         if not instance_id:
             return False

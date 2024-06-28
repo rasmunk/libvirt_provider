@@ -144,6 +144,17 @@ def create_group(parser):
         dest="{}_template_path".format(INSTANCE),
         help="The path to the XML template that should be used to create the instance.",
     )
+    instance_group.add_argument(
+        "-extra-tp-values",
+        "--extra-template-path-values",
+        metavar="KEY=VALUE",
+        nargs="+",
+        dest="{}_template_path_nargs".format(INSTANCE),
+        default=[],
+        help="""A set of key=value pair arguments that should be passed to the template.
+        If a value contains spaces, you should define it with quotes.
+        """,
+    )
 
 
 def remove_group(parser):
