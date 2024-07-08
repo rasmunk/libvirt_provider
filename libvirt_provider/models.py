@@ -141,10 +141,11 @@ class LibvirtDriver:
         template_path_kwargs = {}
         if template_path_nargs:
             for item in template_path_nargs:
-                key, value = item.split("=")
-                template_path_kwargs[key] = value
-
-        print("Extra template values: {}".format(template_path_kwargs))
+                if "=" in item:
+                    key, value = item.split("=")
+                    template_path_kwargs[key] = value
+                else:
+                    template_path_kwargs[item] = "Missing '=' in template path nargs"
 
         if "memory_size" in kwargs:
             kwargs["memory_size"] = self._prepare_memory(kwargs["memory_size"])
