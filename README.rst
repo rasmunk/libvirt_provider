@@ -2,6 +2,11 @@
 libvirt_provider
 ================
 
+.. image:: https://img.shields.io/pypi/pyversions/libvirt-provider.svg
+    :target: https://img.shields.io/pypi/pyversions/libvirt-provider
+.. image:: https://badge.fury.io/py/libvirt-provider.svg
+    :target: https://badge.fury.io/py/libvirt-provider
+
 A libvirt orchestration plugin for `corc <https://github.com/rasmunk/corc>`_
 
 ------------
@@ -94,7 +99,7 @@ As indicated by the instance creation command, the ``libvirt-provider`` expects 
     $ libvirt-provider instance create <name> <disk-image-file>
 
 The <disk-image-file> can either be prepared by downloading directly from one of the distribution repositories, or a prepared with a tool
-like our `gen-vm-image <https://github.com/ucphhpc/gen-vm-image>`_ before it is used to create an instance via ``libvirt-provider``.
+like our `libvirt-provider <https://github.com/ucphhpc/libvirt-provider>`_ before it is used to create an instance via ``libvirt-provider``.
 
 In turn, an orchestrated instance can be removed via the ``remove`` argument::
 
