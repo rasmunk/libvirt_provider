@@ -12,7 +12,7 @@ class Pool:
         self._lock_path = "{}.lock".format(self.name)
 
     async def items(self):
-        with shelve.open(self.name) as db:
+        with shelve.open(self._database_path) as db:
             return [item for item in db.values()]
 
     async def add(self, item):
@@ -25,7 +25,7 @@ class Pool:
         if not lock:
             return False
         try:
-            with shelve.open(self.name) as db:
+            with shelve.open(self._database_path) as db:
                 db[item.id] = item
         except Exception as err:
             print(err)
@@ -39,7 +39,7 @@ class Pool:
         if not lock:
             return False
         try:
-            with shelve.open(self.name) as db:
+            with shelve.open(self._database_path) as db:
                 db.pop(item_id)
         except Exception as err:
             print(err)
@@ -67,7 +67,7 @@ class Pool:
         return True
 
     async def get(self, item_id):
-        with shelve.open(self.name) as db:
+        with shelve.open(self._database_path) as db:
             return db.get(item_id)
 
     async def flush(self):
@@ -76,7 +76,7 @@ class Pool:
             return False
 
         try:
-            with shelve.open(self.name) as db:
+            with shelve.open(self._database_path) as db:
                 [db.pop(item_id) for item_id in db.keys()]
         except Exception as err:
             print(err)
