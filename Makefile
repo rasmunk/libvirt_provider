@@ -57,7 +57,6 @@ test_pre: venv
 test_smoke: venv
 	. $(VENV)/activate; pytest -m smoke -s -v tests/
 
-# The tests requires access to the docker socket
 test: test_pre
 	. $(VENV)/activate; pytest -m 'not smoke' -s -v tests/
 
