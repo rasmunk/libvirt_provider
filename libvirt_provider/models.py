@@ -5,6 +5,15 @@ import re
 from libvirt_provider.utils.io import load, load_json
 
 
+# https://stackoverflow.com/questions/45541725/avoiding-console-prints-by-libvirt-qemu-python-apis
+# This is to disable the default output of libvirt errors to the console
+def libvirt_callback(userdata, err):
+    pass
+
+
+libvirt.registerErrorHandler(f=libvirt_callback, ctx=None)
+
+
 class Node:
     def __init__(self, id, name, state=None, **kwargs):
         self.id = id
@@ -97,13 +106,8 @@ class LibvirtDriver:
         auth_list = [valid_auth_options, auth_callback, None]
         try:
             self._conn = libvirt.openAuth(self._open_uri, auth_list, flags)
-        except libvirt.libvirtError as err:
-            print(
-                "Could not connect to the libvirt socket: {} - {}".format(
-                    self._open_uri, err
-                )
-            )
-            print("Are you sure that the libvirt daemon is running?")
+        except libvirt.libvirtError:
+            # TODO, add error logging here
             self._conn = None
             raise Exception("Failed to connect to the libvirt daemon socket")
 
@@ -125,8 +129,7 @@ class LibvirtDriver:
         try:
             domain = self._conn.lookupByUUIDString(node_id)
             return domain
-        except libvirt.libvirtError as err:
-            print("Failed to lookup domain: {} - {}".format(node_id, err))
+        except libvirt.libvirtError:
             return False
         return False
 
@@ -306,8 +309,8 @@ class LibvirtDriver:
             return False
         try:
             domain.create()
-        except libvirt.libvirtError as err:
-            print("Failed to start domain: {} - {}".format(node_id, err))
+        except libvirt.libvirtError:
+            # TODO, add error logging here
             return False
         return True
 
@@ -318,8 +321,8 @@ class LibvirtDriver:
         try:
             libvirt_state = domain.state()
             return LibvirtDriver.translate_state(libvirt_state[0])
-        except libvirt.libvirtError as err:
-            print("Failed to get domain state: {} - {}".format(node_id, err))
+        except libvirt.libvirtError:
+            # TODO, add error logging here
             return False
         return False
 
@@ -329,8 +332,8 @@ class LibvirtDriver:
             return False
         try:
             domain.destroy()
-        except libvirt.libvirtError as err:
-            print("Failed to shutdown domain: {} - {}".format(node_id, err))
+        except libvirt.libvirtError:
+            # TODO, add error logging here
             return False
         return True
 
@@ -340,8 +343,8 @@ class LibvirtDriver:
             return False
         try:
             domain.undefine()
-        except libvirt.libvirtError as err:
-            print("Failed to undefine domain: {} - {}".format(node_id, err))
+        except libvirt.libvirtError:
+            # TODO, add error logging here
             return False
         return True
 
