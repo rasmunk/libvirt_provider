@@ -137,3 +137,5 @@ tests/images
 !libvirt_provider/instance
 
 tmp/
+
+*.db
