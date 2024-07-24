@@ -128,7 +128,7 @@ def run():
             return EXIT_SUCCESS
         else:
             eprint(output)
-            return EXIT_SUCCESS
+            return EXIT_FAILURE
     return EXIT_SUCCESS
 
 
