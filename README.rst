@@ -46,6 +46,7 @@ These resources can be orchestrated via the CLI interface::
     COMMAND:
     {instance,container}
 
+For each of these resources, a certain set of actions can be performed.
 For instance, to orchestrate an instance, the following command can be used::
 
     $ usage: libvirt_provider instance create [-h]
@@ -92,7 +93,9 @@ For instance, to orchestrate an instance, the following command can be used::
                             The serial type target port
     -tp INSTANCE_TEMPLATE_PATH, --template-path INSTANCE_TEMPLATE_PATH
                             The path to the XML template that should be used to create the instance.
-
+    -extra-tp-values KEY=VALUE [KEY=VALUE ...], --extra-template-path-values KEY=VALUE [KEY=VALUE ...]
+                            A set of key=value pair arguments that should be passed to the template. If a value contains spaces, you
+                            should define it with quotes.
 
 As indicated by the instance creation command, the ``libvirt-provider`` expects that a disk image file is provided as an argument::
 
@@ -100,6 +103,12 @@ As indicated by the instance creation command, the ``libvirt-provider`` expects 
 
 The <disk-image-file> can either be prepared by downloading directly from one of the distribution repositories, or a prepared with a tool
 like our `libvirt-provider <https://github.com/ucphhpc/libvirt-provider>`_ before it is used to create an instance via ``libvirt-provider``.
+
+
+After the instance has been created, it can be started via the ``start`` argument::
+
+    $ libvirt-provider instance start <instance-id>
+
 
 In turn, an orchestrated instance can be removed via the ``remove`` argument::
 
@@ -114,3 +123,15 @@ To discover the <instance-id> of a particular instance, the ``list`` argument ca
         "status": "success"
     }
 
+----------
+Templating
+----------
+
+The ``libvirt-provider`` supports templating of the libvirt domain XML definition that is used to create a libvirt resource.
+The supported XML template formats include `jinja https://jinja.palletsprojects.com/en/3.1.x/`_, `json https://en.wikipedia.org/wiki/JSON`_, 
+or regular `python string formatting https://docs.python.org/3/library/stdtypes.html#str.format>`_. Examples of such formats can be found in the
+repostries examples directory.
+
+The template file can be provided as an argument to the ``create`` command::
+
+    $ libvirt-provider instance create <name> <disk-image-file> -tp/--template-path <template-file> -extra-tp-values/--extra-template-path-values <key=value>...

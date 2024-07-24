@@ -1,0 +1,23 @@
+<domain type='{{domain_type}}'>
+  <name>{{name}}</name>
+  <memory>{{memory_size}}</memory>
+  <vcpu>{{num_vcpus}}</vcpu>
+  <os>
+    <type arch='{{cpu_architecture}}' machine='{{machine}}'>hvm</type>
+    <type>hvm</type>
+  </os>
+  <cpu mode='{{cpu_mode}}'/>
+  <devices>
+    <disk type='{{disk_device_type}}' device='disk'>
+      <driver name='{{disk_driver_name}}' type='{{disk_driver_type}}'/>
+      <source file='{{disk_image_path}}'/>
+      <target dev='{{disk_target_dev}}' bus='{{disk_target_bus}}'/>
+    </disk>
+    <serial type='{{serial_type}}'>
+      <target port='{{serial_type_target_port}}'/>
+    </serial>
+    <console type='{{console_type}}'>
+      <target type='serial' port='{{serial_type_target_port}}'/>
+    </console>
+  </devices>
+</domain>
