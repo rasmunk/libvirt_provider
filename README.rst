@@ -128,8 +128,8 @@ Templating
 ----------
 
 The ``libvirt-provider`` supports templating of the libvirt domain XML definition that is used to create a libvirt resource.
-The supported XML template formats include `jinja https://jinja.palletsprojects.com/en/3.1.x/`_, `json https://en.wikipedia.org/wiki/JSON`_, 
-or regular `python string formatting https://docs.python.org/3/library/stdtypes.html#str.format>`_. Examples of such formats can be found in the
+The supported XML template formats include `jinja <https://jinja.palletsprojects.com/en/3.1.x/>`_, `json <https://en.wikipedia.org/wiki/JSON>`_, 
+or regular `python string formatting <https://docs.python.org/3/library/stdtypes.html#str.format>`_. Examples of such formats can be found in the
 repostries examples directory.
 
 The template file can be provided as an argument to the ``create`` command::

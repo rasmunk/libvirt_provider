@@ -53,6 +53,7 @@ uninstalltest: venv
 
 test_pre: venv 
 	. $(VENV)/activate; python3 setup.py check -rms
+	. $(VENV)/activate; rstcheck README.rst
 
 test_smoke: venv
 	. $(VENV)/activate; pytest -m smoke -s -v tests/
