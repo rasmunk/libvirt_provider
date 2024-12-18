@@ -59,6 +59,8 @@ setup(
     entry_points={
         "console_scripts": ["libvirt-provider = libvirt_provider.cli.cli:run"],
         "corc.plugins": ["libvirt_provider=libvirt_provider.instance"],
+        "corc.plugins.cli": ["libvirt_provider=libvirt_provider.cli.cli:run"],
+        "corc.plugins.config": ["libvirt_provider=libvirt_provider.config:generate_default_config"],
         "corc.plugins.orchestration": ["libvirt_provider=libvirt_provider.instance"],
     },
     classifiers=[
