@@ -18,6 +18,7 @@ import argparse
 import datetime
 import json
 import sys
+from libvirt_provider._version import __version__
 from libvirt_provider.utils.format import eprint
 from libvirt_provider.defaults import PACKAGE_NAME, LIBVIRT_CLI_STRUCTURE
 from libvirt_provider.cli.input_groups.driver import add_driver_group, has_driver_group
@@ -114,12 +115,24 @@ def cli(commands):
             )
 
 
+def add_base_cli_operations(parser):
+    parser.add_argument(
+        "--version",
+        "-V",
+        action="version",
+        version=__version__,
+        help="Print the version of the program",
+    )
+
+
 def run():
     parser = argparse.ArgumentParser(
         prog=PACKAGE_NAME, formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    commands = parser.add_subparsers(title="COMMAND")
+    # Add the basic CLI functions
+    add_base_cli_operations(parser)
     # Add libvirt functions to the CLI
+    commands = parser.add_subparsers(title="COMMAND")
     cli(commands)
     args = parser.parse_args()
     # Convert to a dictionary
