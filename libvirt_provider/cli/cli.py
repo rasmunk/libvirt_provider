@@ -103,7 +103,7 @@ def recursive_add_libvirt_operations(
             )
 
 
-def cli(commands):
+def add_libvirt_provider_cli(commands):
     for libvirt_cli_structure in LIBVIRT_CLI_STRUCTURE:
         for libvirt_cli_type, libvirt_cli_operations in libvirt_cli_structure.items():
             function_provider = commands.add_parser(libvirt_cli_type)
@@ -125,7 +125,7 @@ def add_base_cli_operations(parser):
     )
 
 
-def run():
+def main(args):
     parser = argparse.ArgumentParser(
         prog=PACKAGE_NAME, formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
@@ -133,10 +133,11 @@ def run():
     add_base_cli_operations(parser)
     # Add libvirt functions to the CLI
     commands = parser.add_subparsers(title="COMMAND")
-    cli(commands)
-    args = parser.parse_args()
+    add_libvirt_provider_cli(commands)
+
+    parsed_args = parser.parse_args(args)
     # Convert to a dictionary
-    arguments = vars(args)
+    arguments = vars(parsed_args)
     # Execute default function
     if "func" in arguments:
         func = arguments.pop("func")
@@ -161,5 +162,9 @@ def run():
     return EXIT_SUCCESS
 
 
+def cli():
+    return main(sys.argv[1:])
+
+
 if __name__ == "__main__":
-    sys.exit(run())
+    sys.exit(main(sys.argv[1:]))
