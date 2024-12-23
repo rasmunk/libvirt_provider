@@ -58,7 +58,7 @@ setup(
     },
     # Ensures that the plugin can be discovered/loaded by corc
     entry_points={
-        "console_scripts": ["libvirt-provider = libvirt_provider.cli.cli:run"],
+        "console_scripts": ["libvirt-provider=libvirt_provider.cli.cli:cli"],
         "corc.plugins": ["libvirt_provider=libvirt_provider.instance"],
         "corc.plugins.cli": [
             "libvirt_provider=libvirt_provider.cli.corc:libvirt_provider_cli"
