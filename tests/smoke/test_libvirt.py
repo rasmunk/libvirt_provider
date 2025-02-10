@@ -34,7 +34,7 @@ from libvirt_provider.instance.get import get
 from libvirt_provider.instance.ls import ls
 from libvirt_provider.instance.start import start
 from libvirt_provider.instance.state import state
-from .context import LibvirtTestContext
+from .context import LibvirtTestContext, CPU_ARCHITECTURE
 
 
 @pytest.mark.smoke
@@ -209,6 +209,18 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
 
     async def test_create_node_with_jinja_template(self):
         test_name = f"create-jinja-test-{self.seed}"
+        if CPU_ARCHITECTURE == "aarch64":
+            machine = "virt"
+            # https://bugs.launchpad.net/nova/+bug/1864588
+            cpu_mode = "custom"
+            disk_target_dev = "vda"
+            disk_target_bus = "virtio"
+        else:
+            machine = "pc"
+            cpu_mode = "host-model"
+            disk_target_dev = "hda"
+            disk_target_bus = "ide"
+
         node_options = {
             "name": test_name,
             "template_path": join("tests", "res", "templates", "libvirt.j2"),
@@ -217,13 +229,13 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
             "disk_driver_name": "qemu",
             "disk_driver_type": "qcow2",
             "disk_image_path": self.test_image,
-            "disk_target_dev": "hda",
-            "disk_target_bus": "ide",
+            "disk_target_dev": disk_target_dev,
+            "disk_target_bus": disk_target_bus,
             "memory_size": "1024MiB",
             "num_vcpus": 1,
             "cpu_architecture": self.context.architecture,
-            "cpu_mode": "host-model",
-            "machine": "pc",
+            "cpu_mode": cpu_mode,
+            "machine": machine,
             "serial_type": "pty",
             "serial_type_target_port": 0,
             "console_type": "pty",

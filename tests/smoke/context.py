@@ -14,6 +14,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import platform
+from gen_vm_image.common.codes import SUCCESS
 from gen_vm_image.cli.build_image import build_architecture
 from libvirt_provider.utils.io import remove as fs_remove
 from libvirt_provider.utils.user import (
@@ -25,6 +27,9 @@ from libvirt_provider.utils.io import (
     exists,
     makedirs,
 )
+
+
+CPU_ARCHITECTURE = platform.machine()
 
 
 class LibvirtTestContext:
@@ -41,7 +46,7 @@ class LibvirtTestContext:
         self.group = find_group_with_groupname(user_base)
         assert self.group is not False
 
-        self.architecture = "x86_64"
+        self.architecture = CPU_ARCHITECTURE
         self.image_version = "12"
         self.name = f"libvirt-{self.architecture}"
         # Note, a properly SELinux labelled directory is required when SELinux is enabled
@@ -54,7 +59,8 @@ class LibvirtTestContext:
         )
         assert exists(architecture_path)
         self.image = join(self.images_dir, f"{self.name}-{self.image_version}.qcow2")
-        build_architecture(architecture_path, self.images_dir, False)
+        return_code, msg = build_architecture(architecture_path, self.images_dir, False)
+        assert return_code == SUCCESS
         assert exists(self.image)
 
         self.node_options_path = join(
