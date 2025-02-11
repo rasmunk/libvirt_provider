@@ -163,3 +163,27 @@ class TestCLILibvirt(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(instance["name"], test_name)
             self.assertIn("id", instance)
             self.assertEqual(instance["id"], instance_id)
+
+    def test_cli_remove_instance(self):
+        test_name = "{}-test-cli-remove-instance".format(self.name)
+        instance_id = None
+        with patch("sys.stdout", new=StringIO()) as captured_stdout:
+            create_return_code = create_instance(
+                test_name, self.test_image, self.common_instance_args
+            )
+            self.assertEqual(create_return_code, SUCCESS)
+            create_output = json_to_dict(captured_stdout.getvalue())
+            instance_id = create_output["instance"]["id"]
+
+        self.assertIsNotNone(instance_id)
+        with patch("sys.stdout", new=StringIO()) as captured_stdout:
+            remove_return_code = remove_instance(instance_id)
+            self.assertEqual(remove_return_code, SUCCESS)
+            remove_output = json_to_dict(captured_stdout.getvalue())
+            self.assertIsInstance(remove_output, dict)
+
+            self.assertIn("id", remove_output)
+            self.assertEqual(remove_output["id"])
+
+            self.assertIn("status", remove_output)
+            self.assertEqual(remove_output["status"], "success")
