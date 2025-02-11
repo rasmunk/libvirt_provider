@@ -94,6 +94,14 @@ class TestCLILibvirt(unittest.IsolatedAsyncioTestCase):
             arg for args_pair in nested_common_args for arg in args_pair.split(" ")
         ]
 
+    async def asyncTearDown(self):
+        pass
+        # TODO add the general purge of test instances
+        # Purge all test related instances
+        # search_regex = "{}.*".format(self.name)
+        # purge_return_code = purge_instances(search_regex)
+        # self.assertEqual(purge_return_code, SUCCESS)
+
     @classmethod
     def tearDownClass(cls):
         cls.context.tearDown()
@@ -114,6 +122,8 @@ class TestCLILibvirt(unittest.IsolatedAsyncioTestCase):
             self.assertIn("name", instance)
             self.assertEqual(instance["name"], test_name)
             self.assertIn("id", instance)
+
+    # TODO add create instance with j2 and xml template tests
 
     def test_cli_ls_instances(self):
         test_name = "{}-test-cli-ls-instance".format(self.name)
