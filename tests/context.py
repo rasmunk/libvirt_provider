@@ -22,11 +22,7 @@ from libvirt_provider.utils.user import (
     find_user_with_username,
     find_group_with_groupname,
 )
-from libvirt_provider.utils.io import (
-    join,
-    exists,
-    makedirs,
-)
+from libvirt_provider.utils.io import join, exists, makedirs, load_json
 
 
 CPU_ARCHITECTURE = platform.machine()
@@ -67,6 +63,9 @@ class LibvirtTestContext:
             "tests", "smoke", "res", "node_options", f"{self.architecture}.json"
         )
         assert exists(self.node_options_path)
+        self.common_node_options = load_json(self.node_options_path)
+        assert isinstance(self.common_node_options, dict)
+
         self.init_done = True
 
     # Should be used by the non async function tearDownClass to ensure that
