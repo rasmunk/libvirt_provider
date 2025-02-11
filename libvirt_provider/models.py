@@ -157,6 +157,16 @@ class LibvirtDriver:
         template_path_nargs=None,
         **kwargs,
     ):
+        """Creates a libvirt domain with the specified kwargs and the
+        default xml definition in the _define_instance function.
+        If a template is provided, its xml definition will be used
+        in combination with the standard kwargs and the provided template_path_nargs.
+        When combining the two methods of providing args for the templated instance,
+        the template_path_nargs takes precedent over the standard kwargs.
+        """
+
+        instance_kwargs = {"disk_image_path": disk_image_path}
+
         template_path_kwargs = {}
         if template_path_nargs:
             for item in template_path_nargs:
@@ -166,20 +176,19 @@ class LibvirtDriver:
                 else:
                     template_path_kwargs[item] = "Missing '=' in template path nargs"
 
-        if "memory_size" in kwargs:
-            kwargs["memory_size"] = self._prepare_memory(kwargs["memory_size"])
+        instance_kwargs.update(**kwargs)
+        instance_kwargs.update(template_path_kwargs)
+
+        if "memory_size" in instance_kwargs:
+            instance_kwargs["memory_size"] = self._prepare_memory(
+                instance_kwargs["memory_size"]
+            )
 
         if not template_path:
-            instance_id = self._define_instance(
-                name=name, disk_image_path=disk_image_path, **kwargs
-            )
+            instance_id = self._define_instance(name=name, **instance_kwargs)
         else:
             instance_id = self._define_instance_from_template(
-                name,
-                template_path,
-                disk_image_path=disk_image_path,
-                **template_path_kwargs,
-                **kwargs,
+                name, template_path, **instance_kwargs
             )
         if not instance_id:
             return False
