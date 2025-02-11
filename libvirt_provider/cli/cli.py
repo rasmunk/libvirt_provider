@@ -23,10 +23,7 @@ from libvirt_provider.utils.format import eprint
 from libvirt_provider.defaults import PACKAGE_NAME, LIBVIRT_CLI_STRUCTURE
 from libvirt_provider.cli.input_groups.driver import add_driver_group, has_driver_group
 from libvirt_provider.cli.helpers import cli_exec, import_from_module
-
-
-EXIT_SUCCESS = 0
-EXIT_FAILURE = 1
+from libvirt_provider.codes import SUCCESS, FAILURE
 
 
 def to_str(o):
@@ -152,14 +149,14 @@ def main(args):
             output = json.dumps(response, indent=4, sort_keys=True, default=to_str)
         except Exception as err:
             eprint("Failed to format: {}, err: {}".format(output, err))
-            return EXIT_FAILURE
+            return FAILURE
         if success:
             print(output)
-            return EXIT_SUCCESS
+            return SUCCESS
         else:
             eprint(output)
-            return EXIT_FAILURE
-    return EXIT_SUCCESS
+            return FAILURE
+    return SUCCESS
 
 
 def cli():
