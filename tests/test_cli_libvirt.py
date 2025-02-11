@@ -53,6 +53,11 @@ def remove_instance(instance_id):
     return cli_action("remove", args)
 
 
+def purge_instances(regex):
+    args = ["--regex", regex]
+    return cli_action("purge", args)
+
+
 def show_instance(instance_id):
     args = [instance_id]
     return cli_action("show", args)
@@ -187,3 +192,43 @@ class TestCLILibvirt(unittest.IsolatedAsyncioTestCase):
 
             self.assertIn("status", remove_output)
             self.assertEqual(remove_output["status"], "success")
+
+    def test_cli_purge_instances(self):
+        num_test_instances = 5
+        base_test_name = "{}-test-cli-purge-instance".format(self.seed)
+        test_names = [
+            "{}-{}".format(base_test_name, num_test)
+            for num_test in range(num_test_instances)
+        ]
+
+        instance_ids = []
+        for test_name in test_names:
+            with patch("sys.stdout", new=StringIO()) as captured_stdout:
+                create_return_code = create_instance(
+                    test_name, self.test_image, self.common_instance_args
+                )
+                self.assertEqual(create_return_code, SUCCESS)
+                create_output = json_to_dict(captured_stdout.getvalue())
+                instance_ids.append(create_output["instance"]["id"])
+        self.assertEqual(len(instance_ids), num_test_instances)
+
+        with patch("sys.stdout", new=StringIO()) as captured_stdout:
+            search_regex = "{}.*".format(base_test_name)
+            purged_return_code = purge_instances(search_regex)
+            self.assertEqual(purged_return_code, SUCCESS)
+            purge_output = json_to_dict(captured_stdout.getvalue())
+            self.assertIsInstance(purge_output, dict)
+            self.assertIn("purged", purge_output)
+            purged_instances = purge_output["purged"]
+            self.assertCountEqual(instance_ids, purged_instances)
+
+        with patch("sys.stdout", new=StringIO()) as captured_stdout:
+            search_regex = "{}.*".format(base_test_name)
+            ls_return_code = ls_instance(search_regex)
+            self.assertEqual(ls_return_code, SUCCESS)
+            output = json_to_dict(captured_stdout.getvalue())
+            # Verify the ls output structure and the identification content
+            self.assertIsInstance(output, dict)
+            self.assertNotIn("purged", output)
+            self.assertIn("instances", output)
+            self.assertEqual(output["instances"], [])
