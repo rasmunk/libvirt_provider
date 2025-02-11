@@ -188,7 +188,7 @@ class TestCLILibvirt(unittest.IsolatedAsyncioTestCase):
             self.assertIsInstance(remove_output, dict)
 
             self.assertIn("id", remove_output)
-            self.assertEqual(remove_output["id"])
+            self.assertEqual(remove_output["id"], instance_id)
 
             self.assertIn("status", remove_output)
             self.assertEqual(remove_output["status"], "success")
@@ -216,11 +216,16 @@ class TestCLILibvirt(unittest.IsolatedAsyncioTestCase):
             search_regex = "{}.*".format(base_test_name)
             purged_return_code = purge_instances(search_regex)
             self.assertEqual(purged_return_code, SUCCESS)
+
             purge_output = json_to_dict(captured_stdout.getvalue())
             self.assertIsInstance(purge_output, dict)
             self.assertIn("purged", purge_output)
+
             purged_instances = purge_output["purged"]
             self.assertCountEqual(instance_ids, purged_instances)
+
+            self.assertIn("failed", purge_output)
+            self.assertEqual(purge_output["failed"], [])
 
         with patch("sys.stdout", new=StringIO()) as captured_stdout:
             search_regex = "{}.*".format(base_test_name)
