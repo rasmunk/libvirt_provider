@@ -31,8 +31,8 @@ libvirt.registerErrorHandler(f=libvirt_callback, ctx=None)
 
 
 class Node:
-    def __init__(self, id, name, state=None, **kwargs):
-        self.id = id
+    def __init__(self, _id, name, state=None, **kwargs):
+        self.id = _id
         self.name = name
         self.state = state
         self.config = kwargs

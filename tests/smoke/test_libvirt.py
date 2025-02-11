@@ -45,7 +45,12 @@ class TestLibvirt(unittest.IsolatedAsyncioTestCase):
         await self.context.setUp()
 
         self.seed = str(random.random())[2:10]
-        self.test_image = os.path.realpath(f"{self.context.image}-{self.seed}")
+        context_image_split = self.context.image.split(".")
+        new_test_image = "{}-{}.{}".format(
+            context_image_split[0], self.seed, context_image_split[-1]
+        )
+
+        self.test_image = os.path.realpath(new_test_image)
         self.assertTrue(copy(self.context.image, self.test_image))
         self.assertTrue(exists(self.test_image))
         open_uri = "qemu:///session"

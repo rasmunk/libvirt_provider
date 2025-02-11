@@ -231,4 +231,11 @@ def stop_group(parser):
 
 
 def ls_group(parser):
-    _ = parser.add_argument_group(title="Instance list arguments")
+    instance_group = parser.add_argument_group(title="Instance list arguments")
+    instance_group.add_argument(
+        "-r",
+        "--regex",
+        dest="{}_regex".format(INSTANCE),
+        default=None,
+        help="Specify a regex that can be used to find the instances that should be listed",
+    )

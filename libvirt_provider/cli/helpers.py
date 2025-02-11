@@ -97,9 +97,7 @@ def cli_exec(arguments):
     driver_provider = driver_kwargs.pop("name", LIBVIRT)
     client = new_client(driver_provider, **driver_kwargs)
 
-    action_kwargs, _ = extract_arguments(
-        remaining_driver_kwargs, argument_groups
-    )
+    action_kwargs, _ = extract_arguments(remaining_driver_kwargs, argument_groups)
     action_kwargs = strip_argument_group_prefix(action_kwargs, argument_groups)
     action_args = positional_arguments
     return asyncio.run(func(client, *action_args, **action_kwargs))
