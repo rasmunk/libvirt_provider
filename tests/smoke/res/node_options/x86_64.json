@@ -1,5 +1,5 @@
 {
-    "domain_type": "kvm",
+    "domain_type": "qemu",
     "disk_target_dev": "hda",
     "disk_target_bus": "ide",
     "cpu_architecture": "x86_64",
