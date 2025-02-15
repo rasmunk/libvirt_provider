@@ -58,10 +58,13 @@ class LibvirtTestContext:
 
         self.test_res_directory = os.path.realpath(join("tests", "res"))
         self.test_smoke_directory = os.path.realpath(join("tests", "smoke"))
-        self.test_templates_directory = os.path.realpath(join(self.test_res_directory, "templates"))
+        self.test_templates_directory = os.path.realpath(
+            join(self.test_res_directory, "templates")
+        )
 
-        architecture_path = os.path.realpath(join(self.test_smoke_directory, "res", "gen-vm-image", "architecture.yml"
-        ))
+        architecture_path = os.path.realpath(
+            join(self.test_smoke_directory, "res", "gen-vm-image", "architecture.yml")
+        )
         assert exists(architecture_path)
         self.image = join(self.images_dir, f"{self.name}-{self.image_version}.qcow2")
         return_code, msg = build_architecture(architecture_path, self.images_dir, False)
@@ -69,7 +72,10 @@ class LibvirtTestContext:
         assert exists(self.image)
 
         self.node_options_path = join(
-            self.test_smoke_directory, "res", "node_options", f"{self.architecture}.json"
+            self.test_smoke_directory,
+            "res",
+            "node_options",
+            f"{self.architecture}.json",
         )
         assert exists(self.node_options_path)
         self.common_node_options = load_json(self.node_options_path)

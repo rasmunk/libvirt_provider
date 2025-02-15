@@ -18,6 +18,7 @@ import os
 import json
 import unittest
 import random
+import xml.etree.ElementTree as ET
 from io import StringIO
 from unittest.mock import patch
 from libvirt_provider.defaults import INSTANCE
@@ -134,8 +135,9 @@ class TestCLILibvirt(unittest.IsolatedAsyncioTestCase):
             "--template-path",
             template_path,
             "--extra-template-path-values",
-            "memory_size=1024MiB"
+            "memory_size=1024MiB",
         ]
+        expected_memory_kib_size = 1024 * 1024
         with patch("sys.stdout", new=StringIO()) as captured_stdout:
             return_code = create_instance(test_name, self.test_image, template_args)
             self.assertEqual(return_code, SUCCESS)
@@ -147,13 +149,10 @@ class TestCLILibvirt(unittest.IsolatedAsyncioTestCase):
             config = output["instance"]["config"]["config"]
             self.assertIsInstance(config, str)
             tree = ET.ElementTree(ET.fromstring(config))
-            memory_node = [
-                child
-                for child in tree
-                if child.tag == "memory"
-            ]
-            self.assertEqual(len(memory_node), 1)
-
+            memory_tree_node = [child for child in tree.iter() if child.tag == "memory"]
+            self.assertEqual(len(memory_tree_node), 1)
+            instance_memory_kib = int(memory_tree_node[0].text)
+            self.assertEqual(instance_memory_kib, expected_memory_kib_size)
 
     def test_cli_ls_instances(self):
         test_name = "{}-test-cli-ls-instance".format(self.name)
