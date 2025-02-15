@@ -14,6 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import os
 import platform
 from gen_vm_image.common.codes import SUCCESS
 from gen_vm_image.cli.build_image import build_architecture
@@ -26,6 +27,7 @@ from libvirt_provider.utils.io import join, exists, makedirs, load_json
 
 
 CPU_ARCHITECTURE = platform.machine()
+TEST_JINJA_TEMPLATE = "libvirt.j2"
 
 
 class LibvirtTestContext:
@@ -50,9 +52,16 @@ class LibvirtTestContext:
         if not exists(self.images_dir):
             assert makedirs(self.images_dir)
 
-        architecture_path = join(
-            "tests", "smoke", "res", "gen-vm-image", "architecture.yml"
-        )
+        self.test_tmp_directory = os.path.realpath(join("tests", "tmp"))
+        if not exists(self.test_tmp_directory):
+            assert makedirs(self.test_tmp_directory)
+
+        self.test_res_directory = os.path.realpath(join("tests", "res"))
+        self.test_smoke_directory = os.path.realpath(join("tests", "smoke"))
+        self.test_templates_directory = os.path.realpath(join(self.test_res_directory, "templates"))
+
+        architecture_path = os.path.realpath(join(self.test_smoke_directory, "res", "gen-vm-image", "architecture.yml"
+        ))
         assert exists(architecture_path)
         self.image = join(self.images_dir, f"{self.name}-{self.image_version}.qcow2")
         return_code, msg = build_architecture(architecture_path, self.images_dir, False)
@@ -60,7 +69,7 @@ class LibvirtTestContext:
         assert exists(self.image)
 
         self.node_options_path = join(
-            "tests", "smoke", "res", "node_options", f"{self.architecture}.json"
+            self.test_smoke_directory, "res", "node_options", f"{self.architecture}.json"
         )
         assert exists(self.node_options_path)
         self.common_node_options = load_json(self.node_options_path)
@@ -72,3 +81,4 @@ class LibvirtTestContext:
     # the following cleanup is done before the class is destroyed
     def tearDown(self):
         assert fs_remove(self.images_dir, recursive=True)
+        assert fs_remove(self.test_tmp_directory, recursive=True)

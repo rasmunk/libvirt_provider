@@ -23,8 +23,8 @@ from unittest.mock import patch
 from libvirt_provider.defaults import INSTANCE
 from libvirt_provider.codes import SUCCESS
 from libvirt_provider.cli.cli import main
-from libvirt_provider.utils.io import copy, exists
-from tests.context import LibvirtTestContext
+from libvirt_provider.utils.io import copy, exists, join
+from tests.context import LibvirtTestContext, TEST_JINJA_TEMPLATE
 
 
 def cli_action(action, *action_args):
@@ -124,6 +124,36 @@ class TestCLILibvirt(unittest.IsolatedAsyncioTestCase):
             self.assertIn("id", instance)
 
     # TODO add create instance with j2 and xml template tests
+    def test_cli_create_instance_jinja_template(self):
+        test_name = "{}-test-cli-create-instance-jinja".format(self.name)
+        template_path = join(self.context.test_templates_directory, TEST_JINJA_TEMPLATE)
+        template_args = [
+            *self.common_instance_args,
+            "--memory-size",
+            "2048MiB",
+            "--template-path",
+            template_path,
+            "--extra-template-path-values",
+            "memory_size=1024MiB"
+        ]
+        with patch("sys.stdout", new=StringIO()) as captured_stdout:
+            return_code = create_instance(test_name, self.test_image, template_args)
+            self.assertEqual(return_code, SUCCESS)
+            output = json_to_dict(captured_stdout.getvalue())
+            self.assertIsInstance(output, dict)
+            self.assertIn("instance", output)
+            self.assertIn("config", output["instance"])
+            self.assertIn("config", output["instance"]["config"])
+            config = output["instance"]["config"]["config"]
+            self.assertIsInstance(config, str)
+            tree = ET.ElementTree(ET.fromstring(config))
+            memory_node = [
+                child
+                for child in tree
+                if child.tag == "memory"
+            ]
+            self.assertEqual(len(memory_node), 1)
+
 
     def test_cli_ls_instances(self):
         test_name = "{}-test-cli-ls-instance".format(self.name)
