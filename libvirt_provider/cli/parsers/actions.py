@@ -30,3 +30,13 @@ class PositionalArgumentsAction(argparse.Action):
             setattr(namespace, "positional_arguments", [values])
         else:
             getattr(namespace, "positional_arguments").append(values)
+
+
+class KeyValueAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        key_value_list = values.split(",")
+        key_value_dict = {
+            key_value.split("=")[0]: key_value.split("=")[1]
+            for key_value in key_value_list
+        }
+        setattr(namespace, self.dest, key_value_dict)

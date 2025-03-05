@@ -15,7 +15,10 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from libvirt_provider.defaults import INSTANCE
-from libvirt_provider.cli.parsers.actions import PositionalArgumentsAction
+from libvirt_provider.cli.parsers.actions import (
+    PositionalArgumentsAction,
+    KeyValueAction,
+)
 
 
 def valid_create_group(parser):
@@ -163,12 +166,12 @@ def create_group(parser):
     instance_group.add_argument(
         "-extra-tp-values",
         "--extra-template-path-values",
+        dest="{}_template_path_kwargs".format(INSTANCE),
         metavar="KEY=VALUE",
-        nargs="+",
-        dest="{}_template_path_nargs".format(INSTANCE),
-        default=[],
-        help="""A set of key=value pair arguments that should be passed to the template.
-        If a value contains spaces, you should define it with quotes.
+        action=KeyValueAction,
+        default="",
+        help="""A string of key=value pair arguments that should be passed to the template.
+        If a value contains spaces, you should define the entire argument in quotes.
         """,
     )
 
