@@ -170,7 +170,7 @@ def create_group(parser):
         metavar="KEY=VALUE",
         action=KeyValueAction,
         default="",
-        help="""A string of key=value pair arguments that should be passed to the template.
+        help="""A comma-separated string of KEY=VALUE pairs that should be passed to the template.
         If a value contains spaces, you should define the entire argument in quotes.
         """,
     )
