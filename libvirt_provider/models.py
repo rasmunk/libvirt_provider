@@ -183,7 +183,6 @@ class LibvirtDriver:
             )
         if not instance_id:
             return False
-
         return self.get(instance_id)
 
     def _load_jinja_template(self, path):
@@ -214,10 +213,10 @@ class LibvirtDriver:
 
         if not xml_desc:
             return None
-        domain = self._define_xml(xml_desc)
-        if domain:
-            return domain.UUIDString()
-        return None
+        success, response = self._define_xml(xml_desc)
+        if not success:
+            return response
+        return response.UUIDString()
 
     def _define_instance(
         self,
@@ -227,8 +226,8 @@ class LibvirtDriver:
         disk_driver_name="qemu",
         disk_driver_type="qcow2",
         disk_image_path=None,
-        disk_target_dev="hda",
-        disk_target_bus="ide",
+        disk_target_dev="vda",
+        disk_target_bus="virtio",
         memory_size="1024MiB",
         num_vcpus=1,
         cpu_architecture="x86_64",
@@ -262,10 +261,10 @@ class LibvirtDriver:
           </devices>
         </domain>
         """
-        domain = self._define_xml(xml_desc)
-        if not domain:
-            return None
-        return domain.UUIDString()
+        success, response = self._define_xml(xml_desc)
+        if not success:
+            return response
+        return response.UUIDString()
 
     def _prepare_memory(self, memory_size):
         # memory_size is interpreted as KiB when passed to libvirt, allow for conversion from multiple units
@@ -314,7 +313,11 @@ class LibvirtDriver:
 
     def _define_xml(self, xml, flags=0):
         """Define a domain from an XML description and returns that domain"""
-        return self._conn.defineXMLFlags(xml, flags)
+        try:
+            return True, self._conn.defineXMLFlags(xml, flags=flags)
+        except libvirt.libvirtError as err:
+            return False, "Failed to define domain from XML, error: {}".format(err)
+        return False, "Failed to define domain from XML, unknown error"
 
     def show(self, node_id):
         return self.get(node_id)

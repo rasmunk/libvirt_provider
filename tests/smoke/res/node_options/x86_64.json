@@ -1,7 +1,7 @@
 {
     "domain_type": "qemu",
-    "disk_target_dev": "hda",
-    "disk_target_bus": "ide",
+    "disk_target_dev": "vda",
+    "disk_target_bus": "virtio",
     "cpu_architecture": "x86_64",
     "machine": "pc",
     "cpu_mode": "host-model"

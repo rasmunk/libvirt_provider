@@ -154,21 +154,56 @@ class TestCLILibvirt(unittest.IsolatedAsyncioTestCase):
             instance_memory_kib = int(memory_tree_node[0].text)
             self.assertEqual(instance_memory_kib, expected_memory_kib_size)
 
+    def test_cli_create_instance_jinja_template_override_machine(self):
+        test_name = "{}-test-cli-create-instance-jinja-override-machine".format(
+            self.name
+        )
+        template_path = join(self.context.test_templates_directory, TEST_JINJA_TEMPLATE)
+        base_machine = "pc-i440fx-rhel7.6.0"
+        expected_machine = "q35"
+        template_args = [
+            *self.common_instance_args,
+            "--machine",
+            base_machine,
+            "--template-path",
+            template_path,
+            "--extra-template-path-values",
+            "machine={}".format(expected_machine),
+        ]
+        with patch("sys.stdout", new=StringIO()) as captured_stdout:
+            return_code = create_instance(test_name, self.test_image, template_args)
+            self.assertEqual(return_code, SUCCESS)
+            output = json_to_dict(captured_stdout.getvalue())
+            self.assertIsInstance(output, dict)
+            self.assertIn("instance", output)
+            self.assertIn("config", output["instance"])
+            self.assertIn("config", output["instance"]["config"])
+            config = output["instance"]["config"]["config"]
+            self.assertIsInstance(config, str)
+
+            tree = ET.ElementTree(ET.fromstring(config))
+            os_tree_node = tree.find("os").find("type")
+            self.assertIsNotNone(os_tree_node)
+            machine = os_tree_node.attrib["machine"]
+            self.assertIn(expected_machine, machine)
+
     def test_cli_create_instance_advanced_jinja_template(self):
         test_name = "{}-test-cli-create-instance-advanced-jinja".format(self.name)
         template_path = join(self.context.test_templates_directory, TEST_JINJA_TEMPLATE)
         expected_num_vcpus = 1
         expected_memory_size = "1024MiB"
         expected_cpu_architecture = platform.machine()
+        extected_machine = "q35"
         template_args = [
             *self.common_instance_args,
             "--template-path",
             template_path,
             "--extra-template-path-values",
-            "num_vcpus={},memory_size={},cpu_architecture={}".format(
+            "num_vcpus={},memory_size={},cpu_architecture={},machine={}".format(
                 expected_num_vcpus,
                 expected_memory_size,
                 expected_cpu_architecture,
+                extected_machine,
             ),
         ]
         expected_memory_kib_size = 1024 * 1024
@@ -191,13 +226,15 @@ class TestCLILibvirt(unittest.IsolatedAsyncioTestCase):
 
             memory_tree_node = tree.find("memory")
             self.assertIsNotNone(memory_tree_node)
-            instance_memory_kib = int(memory_tree_node[0].text)
+            instance_memory_kib = int(memory_tree_node.text)
             self.assertEqual(instance_memory_kib, expected_memory_kib_size)
 
             os_tree_node = tree.find("os").find("type")
             self.assertIsNotNone(os_tree_node)
             cpu_architecture = os_tree_node.attrib["arch"]
             self.assertEqual(cpu_architecture, expected_cpu_architecture)
+            machine = os_tree_node.attrib["machine"]
+            self.assertIn(extected_machine, machine)
 
     def test_cli_ls_instances(self):
         test_name = "{}-test-cli-ls-instance".format(self.name)
