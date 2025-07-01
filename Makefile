@@ -17,11 +17,10 @@
 PACKAGE_NAME=libvirt_provider
 PACKAGE_NAME_FORMATTED=$(subst -,_,$(PACKAGE_NAME))
 
-.PHONY: all init clean dist distclean maintainer-clean
-.PHONY: install uninstall installtest test
-
+.PHONY: all
 all: venv install-dep init
 
+.PHONY: init
 init:
 ifeq ($(shell test -e defaults.env && echo yes), yes)
 ifneq ($(shell test -e .env && echo yes), yes)
@@ -29,51 +28,65 @@ ifneq ($(shell test -e .env && echo yes), yes)
 endif
 endif
 
+.PHONY: clean
 clean: distclean venv-clean
 	rm -fr .env
 	rm -fr *.lock
 	rm -fr .pytest_cache
 	rm -fr tests/__pycache__
 
+.PHONY: dist
 dist: venv
 	$(VENV)/python setup.py sdist bdist_wheel
 
+.PHONY: distclean
 distclean:
 	rm -fr dist build $(PACKAGE_NAME).egg-info $(PACKAGE_NAME_FORMATTED).egg-info
 
+.PHONY: maintainer-clean
 maintainer-clean: distclean
 	@echo 'This command is intended for maintainers to use; it'
 	@echo 'deletes files that may need special tools to rebuild.'
 
+.PHONY: install-dev
 install-dev: venv
 	$(VENV)/pip install -r requirements-dev.txt
 
+.PHONY: uninstall-dev
 uninstall-dev: venv
 	$(VENV)/pip uninstall -y -r requirements-dev.txt
 
+.PHONY: install-dep
 install-dep: venv
 	$(VENV)/pip install -r requirements.txt
 
+.PHONY: install
 install: install-dep
 	$(VENV)/pip install .
 
+.PHONY: uninstall
 uninstall: venv
 	$(VENV)/pip uninstall -y -r requirements.txt
 	$(VENV)/pip uninstall -y $(PACKAGE_NAME)
 
+.PHONY: installtest
 installtest: install
 	$(VENV)/pip install -r tests/requirements.txt
 
+.PHONY: uninstalltest
 uninstalltest: venv
 	$(VENV)/pip uninstall -y -r requirements.txt
 
+.PHONY: test_pre
 test_pre: venv 
 	. $(VENV)/activate; python3 setup.py check -rms
 	. $(VENV)/activate; rstcheck README.rst
 
+.PHONY: test_smoke
 test_smoke: venv
 	. $(VENV)/activate; pytest -m smoke -s -v tests/
 
+.PHONY: test
 test: test_pre
 	. $(VENV)/activate; pytest -m 'not smoke' -s -v tests/
 
