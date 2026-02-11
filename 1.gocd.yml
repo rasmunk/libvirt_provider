@@ -44,6 +44,8 @@ pipelines:
         destination: publish-python-scripts
     parameters:
       ARGS: ''
+      BUILD_MAKE_ARGS: ''
+      TEST_MAKE_ARGS: ''
       SRC_DIRECTORY: libvirt_provider
       TEST_DIRECTORY: libvirt_provider
       PUSH_DIRECTORY: publish-python-scripts
