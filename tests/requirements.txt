@@ -1,5 +1,5 @@
 pytest>=7.2.1
 wget>=3.2
-deling>=0.2.4
-gen-vm-image>=0.0.0a0
+deling>=0.4.3
+gen-vm-image>=0.0.7
 rstcheck==6.2.4

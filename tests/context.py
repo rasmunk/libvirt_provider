@@ -17,7 +17,7 @@
 import os
 import platform
 from gen_vm_image.common.codes import SUCCESS
-from gen_vm_image.cli.build_image import build_architecture
+from gen_vm_image.architecture import build_architecture
 from libvirt_provider.utils.io import remove as fs_remove
 from libvirt_provider.utils.user import (
     find_user_with_username,
@@ -67,7 +67,7 @@ class LibvirtTestContext:
         )
         assert exists(architecture_path)
         self.image = join(self.images_dir, f"{self.name}-{self.image_version}.qcow2")
-        return_code, msg = build_architecture(architecture_path, self.images_dir, False)
+        return_code, msg = await build_architecture(architecture_path, self.images_dir, False)
         assert return_code == SUCCESS
         assert exists(self.image)
 
