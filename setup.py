@@ -46,7 +46,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/x-rst",
     author="Rasmus Munk",
-    author_email="munk1@live.dk",
+    author_email="code@munk0.dk",
     packages=find_packages(),
     url="https://github.com/rasmunk/libvirt_provider",
     license="GNU General Public License v2 (GPLv2)",
@@ -71,12 +71,12 @@ setup(
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
-        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
     ],
 )
