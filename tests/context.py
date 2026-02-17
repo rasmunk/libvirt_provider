@@ -67,7 +67,9 @@ class LibvirtTestContext:
         )
         assert exists(architecture_path)
         self.image = join(self.images_dir, f"{self.name}-{self.image_version}.qcow2")
-        return_code, msg = await build_architecture(architecture_path, self.images_dir, False)
+        return_code, msg = await build_architecture(
+            architecture_path, self.images_dir, False
+        )
         assert return_code == SUCCESS
         assert exists(self.image)
 
