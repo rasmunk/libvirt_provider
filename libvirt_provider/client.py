@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from libvirt_provider.defaults import LIBVIRT, CONTAINER, DUMMY
+from libvirt_provider.defaults import CONTAINER, DUMMY, LIBVIRT
 from libvirt_provider.models import DummyDriver, LibvirtDriver, LXCDriver
 
 

@@ -14,10 +14,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import libvirt
-import uuid
-import jinja2
 import re
+import uuid
+
+import jinja2
+import libvirt
+
 from libvirt_provider.utils.io import load, load_json
 
 

@@ -14,8 +14,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from libvirt_provider.defaults import CONTAINER
 from libvirt_provider.cli.parsers.actions import PositionalArgumentsAction
+from libvirt_provider.defaults import CONTAINER
 
 
 def valid_create_group(parser):

@@ -15,10 +15,11 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
+
+from libvirt_provider.client import new_client
+from libvirt_provider.defaults import DUMMY
 from libvirt_provider.instance.create import create
 from libvirt_provider.instance.remove import remove
-from libvirt_provider.defaults import DUMMY
-from libvirt_provider.client import new_client
 from libvirt_provider.models import Node
 
 

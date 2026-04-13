@@ -14,27 +14,29 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import unittest
-import pytest
 import os
 import random
-from libvirt_provider.utils.io import (
-    copy,
-    join,
-    exists,
-    load_json,
-)
-from libvirt_provider.defaults import LIBVIRT
-from libvirt_provider.models import Node
+import unittest
+
+import pytest
+
 from libvirt_provider.client import new_client
+from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.instance.create import create
-from libvirt_provider.instance.remove import remove
-from libvirt_provider.instance.stop import stop
 from libvirt_provider.instance.get import get
 from libvirt_provider.instance.ls import ls
+from libvirt_provider.instance.remove import remove
 from libvirt_provider.instance.start import start
 from libvirt_provider.instance.state import state
-from tests.context import LibvirtTestContext, CPU_ARCHITECTURE
+from libvirt_provider.instance.stop import stop
+from libvirt_provider.models import Node
+from libvirt_provider.utils.io import (
+    copy,
+    exists,
+    join,
+    load_json,
+)
+from tests.context import CPU_ARCHITECTURE, LibvirtTestContext
 
 
 @pytest.mark.smoke

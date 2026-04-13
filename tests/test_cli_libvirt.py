@@ -14,19 +14,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import platform
-import os
 import json
-import unittest
+import os
+import platform
 import random
+import unittest
 import xml.etree.ElementTree as ET
 from io import StringIO
 from unittest.mock import patch
-from libvirt_provider.defaults import INSTANCE
-from libvirt_provider.codes import SUCCESS
+
 from libvirt_provider.cli.cli import main
+from libvirt_provider.codes import SUCCESS
+from libvirt_provider.defaults import INSTANCE
 from libvirt_provider.utils.io import copy, exists, join
-from tests.context import LibvirtTestContext, TEST_JINJA_TEMPLATE
+from tests.context import TEST_JINJA_TEMPLATE, LibvirtTestContext
 
 
 def cli_action(action, *action_args):

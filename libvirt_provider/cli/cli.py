@@ -18,12 +18,13 @@ import argparse
 import datetime
 import json
 import sys
+
 from libvirt_provider._version import __version__
-from libvirt_provider.utils.format import eprint
-from libvirt_provider.defaults import PACKAGE_NAME, LIBVIRT_CLI_STRUCTURE
-from libvirt_provider.cli.input_groups.driver import add_driver_group, has_driver_group
 from libvirt_provider.cli.helpers import cli_exec, import_from_module
-from libvirt_provider.codes import SUCCESS, FAILURE
+from libvirt_provider.cli.input_groups.driver import add_driver_group, has_driver_group
+from libvirt_provider.codes import FAILURE, SUCCESS
+from libvirt_provider.defaults import LIBVIRT_CLI_STRUCTURE, PACKAGE_NAME
+from libvirt_provider.utils.format import eprint
 
 
 def to_str(o):

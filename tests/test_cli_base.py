@@ -15,8 +15,9 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
-from libvirt_provider.codes import SUCCESS
+
 from libvirt_provider.cli.cli import main
+from libvirt_provider.codes import SUCCESS
 
 
 class TestCLIBase(unittest.TestCase):

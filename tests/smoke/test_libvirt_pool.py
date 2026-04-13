@@ -14,17 +14,19 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import unittest
-import pytest
 import os
 import random
-from libvirt_provider.utils.io import copy, exists, join, load_json
-from libvirt_provider.defaults import LIBVIRT
+import unittest
+
+import pytest
+
 from libvirt_provider.client import new_client
-from libvirt_provider.pool import Pool
-from libvirt_provider.models import Node
+from libvirt_provider.defaults import LIBVIRT
 from libvirt_provider.instance.create import create
 from libvirt_provider.instance.remove import remove
+from libvirt_provider.models import Node
+from libvirt_provider.pool import Pool
+from libvirt_provider.utils.io import copy, exists, join, load_json
 from tests.context import LibvirtTestContext
 
 

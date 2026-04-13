@@ -15,7 +15,8 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import shelve
-from libvirt_provider.utils.io import acquire_lock, release_lock, exists
+
+from libvirt_provider.utils.io import acquire_lock, exists, release_lock
 from libvirt_provider.utils.io import remove as fs_remove
 
 

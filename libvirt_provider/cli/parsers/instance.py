@@ -14,11 +14,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from libvirt_provider.defaults import INSTANCE
 from libvirt_provider.cli.parsers.actions import (
-    PositionalArgumentsAction,
     KeyValueAction,
+    PositionalArgumentsAction,
 )
+from libvirt_provider.defaults import INSTANCE
 
 
 def valid_create_group(parser):

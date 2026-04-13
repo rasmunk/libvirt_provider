@@ -16,15 +16,16 @@
 
 import os
 import platform
-from gen_vm_image.common.codes import SUCCESS
+
 from gen_vm_image.architecture import build_architecture
+from gen_vm_image.common.codes import SUCCESS
+
+from libvirt_provider.utils.io import exists, join, load_json, makedirs
 from libvirt_provider.utils.io import remove as fs_remove
 from libvirt_provider.utils.user import (
-    find_user_with_username,
     find_group_with_groupname,
+    find_user_with_username,
 )
-from libvirt_provider.utils.io import join, exists, makedirs, load_json
-
 
 CPU_ARCHITECTURE = platform.machine()
 TEST_JINJA_TEMPLATE = "libvirt.j2"

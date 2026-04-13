@@ -14,13 +14,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from libvirt_provider.defaults import DRIVER, CONTAINER
 from libvirt_provider.cli.parsers.container import (
     create_group,
+    ls_group,
     remove_group,
     show_group,
-    ls_group,
 )
+from libvirt_provider.defaults import CONTAINER, DRIVER
 
 
 def create_groups(parser):
