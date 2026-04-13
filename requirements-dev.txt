@@ -1,3 +1,4 @@
 flake8==6.1.0
 black==26.3.1
+isort>=6.1.0
 rstcheck==6.2.4
