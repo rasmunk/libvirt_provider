@@ -16,9 +16,11 @@
 
 from libvirt_provider.cli.parsers.actions import (
     KeyValueAction,
+    ListAction,
     PositionalArgumentsAction,
 )
 from libvirt_provider.defaults import INSTANCE
+from libvirt_provider.models import LIBVIRT_UNDEFINE_FLAGS_MAP
 
 
 def valid_create_group(parser):
@@ -181,7 +183,13 @@ def remove_group(parser):
     instance_group.add_argument(
         "id",
         action=PositionalArgumentsAction,
-        help="The id of the instance to be removed",
+        help="""The id of the instance to be removed""",
+    )
+    instance_group.add_argument(
+        "--flags",
+        "-f",
+        action=ListAction,
+        help=f"""Additional options available for removing the instance. Options include: {LIBVIRT_UNDEFINE_FLAGS_MAP.keys()}""",
     )
 
 

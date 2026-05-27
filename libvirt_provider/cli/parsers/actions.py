@@ -40,3 +40,13 @@ class KeyValueAction(argparse.Action):
             for key_value in key_value_list
         }
         setattr(namespace, self.dest, key_value_dict)
+
+
+class ListAction(argparse.Action):
+    """
+    Takes a string of values and turns it into a list
+    """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        options = values.split(",")
+        setattr(namespace, self.dest, options)

@@ -87,6 +87,17 @@ def auth_callback(creds, callback_data):
     return 0
 
 
+LIBVIRT_UNDEFINE_FLAGS_MAP = {
+    "managed_save": libvirt.VIR_DOMAIN_UNDEFINE_MANAGED_SAVE,
+    "snapshots_metadata": libvirt.VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA,
+    "nvram": libvirt.VIR_DOMAIN_UNDEFINE_NVRAM,
+    "keep_nvram": libvirt.VIR_DOMAIN_UNDEFINE_KEEP_NVRAM,
+    "checkpoints_metadata": libvirt.VIR_DOMAIN_UNDEFINE_CHECKPOINTS_METADATA,
+    "tpm": libvirt.VIR_DOMAIN_UNDEFINE_TPM,
+    "keep_tpm": libvirt.VIR_DOMAIN_UNDEFINE_KEEP_TPM,
+}
+
+
 class LibvirtDriver:
     STATE_MAP = {
         0: "no state",
@@ -358,12 +369,25 @@ class LibvirtDriver:
             return False
         return True
 
-    def remove(self, node_id):
+    def remove(self, node_id, *args):
         domain = self._get(node_id)
         if not domain:
             return False
+
+        flag_value = 0
+        if isinstance(args, (list, tuple, set)):
+            for arg in args:
+                if arg not in LIBVIRT_UNDEFINE_FLAGS_MAP:
+                    raise ValueError(f"Invalid remove option provided: {arg}")
+                int_value = LIBVIRT_UNDEFINE_FLAGS_MAP.get(arg)
+                flag_value += int_value
+        else:
+            flag_value = int(args)
+
         try:
-            domain.undefine()
+            # Libvirt Flags must be an integer
+            # Translate to virDomainUndefineFlagsValues
+            domain.undefineFlags(flag_value)
         except libvirt.libvirtError:
             # TODO, add error logging here
             return False

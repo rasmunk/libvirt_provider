@@ -15,9 +15,9 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-async def remove(client, id):
+async def remove(client, id, *args):
     response = {}
-    removed = client.remove(id)
+    removed = client.remove(id, *args)
     if not removed:
         response["msg"] = f"Failed to remove instance: {id}"
         return False, response
