@@ -189,7 +189,10 @@ def remove_group(parser):
         "--flags",
         "-f",
         action=ListAction,
-        help=f"""Additional options available for removing the instance. Options include: {','.join(LIBVIRT_UNDEFINE_FLAGS_MAP.keys())}""",
+        help=f"""
+        Additional options available for removing the instance. Options include: {','.join(LIBVIRT_UNDEFINE_FLAGS_MAP.keys())}.
+        Further details on these options can be found at: https://libvirt.org/html/libvirt-libvirt-domain.html#virDomainUndefineFlagsValues
+        """,
     )
 
 
