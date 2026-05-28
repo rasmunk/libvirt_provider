@@ -369,20 +369,22 @@ class LibvirtDriver:
             return False
         return True
 
-    def remove(self, node_id, *args):
+    def remove(self, node_id, flags=None):
         domain = self._get(node_id)
         if not domain:
             return False
 
         flag_value = 0
-        if isinstance(args, (list, tuple, set)):
-            for arg in args:
-                if arg not in LIBVIRT_UNDEFINE_FLAGS_MAP:
-                    raise ValueError(f"Invalid remove option provided: {arg}")
-                int_value = LIBVIRT_UNDEFINE_FLAGS_MAP.get(arg)
+        if flags is None:
+            flags = []
+
+        if isinstance(flags, (list, tuple, set)):
+            flag_value = 0
+            for flag in flags:
+                if flag not in LIBVIRT_UNDEFINE_FLAGS_MAP:
+                    raise ValueError(f"Invalid remove option provided: {flag}")
+                int_value = LIBVIRT_UNDEFINE_FLAGS_MAP.get(flag)
                 flag_value += int_value
-        else:
-            flag_value = int(args)
 
         try:
             # Libvirt Flags must be an integer
